@@ -37,6 +37,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(PanOrbitCameraPlugin)
+        .add_system(bevy::input::system::exit_on_esc_system.system())
         // Startup systems are called only one, at startup
         .add_startup_system(
             // calling `system()` on a function turns it into a system
