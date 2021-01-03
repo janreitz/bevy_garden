@@ -2,6 +2,8 @@ use bevy::prelude::*;
 
 mod pan_orbit_camera;
 use pan_orbit_camera::*;
+mod tree;
+use tree::*;
 
 fn setup(
     commands: &mut Commands,
@@ -43,6 +45,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_plugin(PanOrbitCameraPlugin)
+        .add_plugin(TreePlugin)
         .add_system(bevy::input::system::exit_on_esc_system.system())
         // Startup systems are called only one, at startup
         .add_startup_system(
