@@ -14,54 +14,78 @@ fn create_trees(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    spawn_tree_segment(commands, asset_server, materials);
+    spawn_tree_segment(commands, &asset_server, &mut materials, Vec3::new(4.0, 1.0, 4.0 ));
     commands.with(Root);
 }
 
 fn spawn_tree_segment(
     commands: &mut Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
+    asset_server: &Res<AssetServer>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    position: Vec3,
+) -> Entity {
     let tree_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
     commands
-        .spawn(PbrBundle {
-            mesh: tree_handle,
-            material: green_material,
-            transform: {
-                let mut transform = Transform::from_translation(Vec3::new(4.0, 1.0, 4.0 ));
-                transform.apply_non_uniform_scale(Vec3::new(0.2, 0.2, 0.2));
-                transform
-            },
-            ..Default::default()
-        })
-        .with(TreeSegment {thickness: 1.0});
+    .spawn(PbrBundle {
+        mesh: tree_handle,
+        material: green_material,
+        transform: {
+            let mut transform = Transform::from_translation(position);
+            transform.apply_non_uniform_scale(Vec3::new(0.2, 0.2, 0.2));
+            transform
+        },
+        ..Default::default()
+    })
+    .with(TreeSegment {thickness: 1.0, children: Vec::new()});
+    
+    commands.current_entity().unwrap()
 }
 
 fn tree_growth(
-    mut query: Query<&mut Transform, With<Root>>,
+    commands: &mut Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query: Query<&mut TreeSegment, With<Root>>,
 ) {
-    for mut transform in query.iter_mut() {
-        transform.apply_non_uniform_scale(Vec3::new(1.01, 1.0, 1.01));
+    for mut tree_segment in query.iter_mut() {
+        tree_segment.grow(commands, &asset_server, &mut materials);
+        //transform.apply_non_uniform_scale(Vec3::new(1.01, 1.0, 1.01));
     }
 }
 
 struct Root;
-
 struct Leaf;
+struct Pose {
+  //  
+}
 
 struct TreeSegment {
     thickness: f32,
-    //children: Vec<Entity>,
+    children: Vec<Entity>,
 }
 
 
 impl TreeSegment {
-    // fn grow(&mut self) {
-    //     let mut my_transform = self.transform;
-    //     my_transform.apply_non_uniform_scale(Vec3::new(1.0, 1.0, 2.0));
-    //     self.transform = my_transform;
+    fn is_leaf(&self) -> bool {
+        self.children.len() == 0
+    }
+
+    fn grow(
+        &mut self,
+        commands: &mut Commands,
+        asset_server: &Res<AssetServer>,
+        materials: &mut ResMut<Assets<StandardMaterial>>,
+    ) {
+        if self.is_leaf() {
+            self.children.push(spawn_tree_segment(
+                commands,
+                asset_server,
+                materials,
+                Vec3::new(4.0, 2.0, 4.0 ),
+            ));
+        }
+    }
     
     //     // for child in self.children.iter_mut() {
     //     //     child.grow(commands);
@@ -105,9 +129,6 @@ impl TreeSegment {
     //     // self.update_thickness();
     // }
     
-    // fn is_leaf(&self) -> bool {
-    //     self.children.len() == 0
-    // }
 
     // fn update_thickness(& mut self) {
     //     let mut sum_squared_thicknesses = 1.0;
