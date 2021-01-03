@@ -14,24 +14,30 @@ fn create_trees(
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let tree_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
-    let green_material = materials.add(Color::GREEN.into());
-    println!("Spawning Tree");
-    commands
-    .spawn(PbrBundle {
-        mesh: tree_handle,
-        material: green_material,
-        transform: {
-            let mut transform = Transform::from_translation(Vec3::new(4.0, 1.0, 4.0 ));
-            transform.apply_non_uniform_scale(Vec3::new(0.2, 0.2, 0.2));
-            transform
-        },
-        ..Default::default()
-    })
-    .with(TreeSegment {thickness: 1.0})
-    .with(Root);
+    spawn_tree_segment(commands, asset_server, materials);
+    commands.with(Root);
 }
 
+fn spawn_tree_segment(
+    commands: &mut Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let tree_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
+    let green_material = materials.add(Color::GREEN.into());
+    commands
+        .spawn(PbrBundle {
+            mesh: tree_handle,
+            material: green_material,
+            transform: {
+                let mut transform = Transform::from_translation(Vec3::new(4.0, 1.0, 4.0 ));
+                transform.apply_non_uniform_scale(Vec3::new(0.2, 0.2, 0.2));
+                transform
+            },
+            ..Default::default()
+        })
+        .with(TreeSegment {thickness: 1.0});
+}
 
 fn tree_growth(
     mut query: Query<&mut Transform, With<Root>>,
