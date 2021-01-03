@@ -95,13 +95,14 @@ fn pan_orbit_camera(
             let look = Mat4::face_toward(cam_transform.translation, camera.focus, Vec3::new(0.0, 1.0, 0.0));
             cam_transform.rotation = look.to_scale_rotation_translation().1;
         } else {
+            let forward_direction = cam_transform.forward().normalize();
             // The plane is x/y while z is "up". Multiplying by dt allows for a constant pan rate
             let pan_movement = Vec3::new(translation_mouse_delta.x * dt, translation_mouse_delta.y * dt, 0.0);
             camera.focus += pan_movement;
-            // Move in the direction the camera is facing
-            let scroll_movement = cam_transform.forward().normalize() * -scroll;
-            cam_transform.translation += scroll_movement;
             cam_transform.translation += pan_movement;
+            // Move in the direction the camera is facing
+            let scroll_movement = forward_direction * -scroll;
+            cam_transform.translation += scroll_movement;
         }
     }
 }
