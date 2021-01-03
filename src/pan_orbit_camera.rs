@@ -55,19 +55,19 @@ fn pan_orbit_camera(
     ev_scroll: Res<Events<MouseWheel>>,
     mut query: Query<(&mut PanOrbitCamera, &mut Transform)>,
 ) {
-    let mut translation = Vec2::zero();
-    let mut rotation_move = Vec2::default();
+    let mut translation_mouse_delta = Vec2::zero();
+    let mut rotation_mouse_delta = Vec2::default();
     let mut scroll = 0.0;
     let dt = time.delta_seconds();
 
     if mousebtn.pressed(MouseButton::Right) {
         for ev in state.reader_motion.iter(&ev_motion) {
-            rotation_move += ev.delta;
+            rotation_mouse_delta += ev.delta;
         }
     } else if mousebtn.pressed(MouseButton::Left) {
         // Pan only if we're not rotating at the moment
         for ev in state.reader_motion.iter(&ev_motion) {
-            translation += ev.delta;
+            translation_mouse_delta += ev.delta;
         }
     }
 
@@ -76,30 +76,31 @@ fn pan_orbit_camera(
     }
 
     // Either pan+scroll or arcball. We don't do both at once.
-    for (mut camera, mut trans) in query.iter_mut() {
-        if rotation_move.length_squared() > 0.0 {
+    for (mut camera, mut cam_transform) in query.iter_mut() {
+        if rotation_mouse_delta.length_squared() > 0.0 {
             let window = windows.get_primary().unwrap();
             let window_w = window.width() as f32;
             let window_h = window.height() as f32;
 
             // Link virtual sphere rotation relative to window to make it feel nicer
-            let delta_x = rotation_move.x / window_w * std::f32::consts::PI * 2.0;
-            let delta_y = rotation_move.y / window_h * std::f32::consts::PI;
+            let delta_x = rotation_mouse_delta.x / window_w * std::f32::consts::PI * 2.0;
+            let delta_y = rotation_mouse_delta.y / window_h * std::f32::consts::PI;
 
             let delta_yaw = Quat::from_rotation_y(delta_x);
             let delta_pitch = Quat::from_rotation_x(delta_y);
 
-            trans.translation =
-                delta_yaw * delta_pitch * (trans.translation - camera.focus) + camera.focus;
+            cam_transform.translation =
+                delta_yaw * delta_pitch * (cam_transform.translation - camera.focus) + camera.focus;
 
-            let look = Mat4::face_toward(trans.translation, camera.focus, Vec3::new(0.0, 1.0, 0.0));
-            trans.rotation = look.to_scale_rotation_translation().1;
+            let look = Mat4::face_toward(cam_transform.translation, camera.focus, Vec3::new(0.0, 1.0, 0.0));
+            cam_transform.rotation = look.to_scale_rotation_translation().1;
         } else {
             // The plane is x/y while z is "up". Multiplying by dt allows for a constant pan rate
-            let mut translation = Vec3::new(-translation.x * dt, translation.y * dt, 0.0);
+            let mut translation = Vec3::new(translation_mouse_delta.x * dt, translation_mouse_delta.y * dt, 0.0);
             camera.focus += translation;
+            // Move in the direction the camera is facing
             translation.z -= scroll;
-            trans.translation += translation;
+            cam_transform.translation += translation;
         }
     }
 }
