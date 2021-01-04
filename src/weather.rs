@@ -33,7 +33,7 @@ fn snow_simulation(
     commands: &mut Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
-    mut query: Query<&mut Transform, With<SnowFlake>>
+    mut query: Query<(Entity, &mut Transform), With<SnowFlake>>
 ) {
     if weather.weather_type != WeatherType::Snow {
         return;
@@ -41,11 +41,15 @@ fn snow_simulation(
 
     // Spawn new snowflakes and move existing ones downwards
     // Randomize x,y position
-    let position = Vec3::new(random::<f32>() * 8.0, 10.0, random::<f32>() * 8.0);
+    let position = Vec3::new(random::<f32>() * 8.0, 4.0, random::<f32>() * 8.0);
     spawn_snowflake(commands, meshes, materials, position);
 
     let dt = time.delta_seconds();
-    for mut transform in query.iter_mut() {
+    for (entity, mut transform) in query.iter_mut() {
+        // Remove Snowflakes once they are below the ground
+        if transform.translation.y < 0.0 {
+            commands.despawn(entity);
+        }
         transform.translation += Vec3::unit_y() * -dt;
     }
 }
