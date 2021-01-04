@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy::core::FixedTimestep;
 use rand::*;
-use std::f32::consts::PI;
 // use bevy::log::info;
 
 pub struct TreePlugin;
@@ -20,40 +19,45 @@ fn tree_growth(
     commands: &mut Commands,
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut query_set: QuerySet<(
-        // leaf_segments: 
-        Query<(Entity, &mut TreeSegment, & Transform), With<Leaf>>,
-        // all_segments: 
-        Query<(& TreeSegment, &mut Transform)>,
-    )>
+    mut query: Query<(Entity, &mut TreeSegment, & Transform, Option<&Leaf>)>,
 ) {
     let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.gltf#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
-    // Leaves always grow
-    for (entity, mut segment, transform) in query_set.q0_mut().iter_mut() {
-        // New Transform
-        let mut new_transform = transform.clone();
-        new_transform.translation += transform.forward() * 0.05;
-
-        new_transform.rotate(Quat::from_axis_angle(
-            // Orthogonal vector to 'forward()' with random 'up'
-            random_orthogonal_vec3(transform.forward()),
-            // Random rotation [-10, 10] degrees
-            random::<f32>() * 0.35 - 0.175,
-        ));
- 
-        // Create new tree segment, which is a Leaf
-        spawn_tree_segment(
-            commands, 
-            segment_handle.clone(), 
-            green_material.clone(), 
-            new_transform,
-        );
-        commands.remove_one::<Leaf>(entity);
-        segment.children.push(commands.current_entity().unwrap());
+    for (entity, mut segment, transform, leaf_opt) in query.iter_mut() {
+        // Leaves always grow, trunk segments only sometimes
+        let trunk_segment_branches = random::<f32>() * 50.0 < 1.0/segment.thickness.powi(2);
+        if leaf_opt.is_some() || trunk_segment_branches {
+            let rotation_angle;
+            if leaf_opt.is_some() {
+                // Leaves rotate slightly [0, 10] degrees
+                rotation_angle = random::<f32>() * 0.175;
+            } else {
+                // Trunk branches rotate more [30,90]
+                rotation_angle = random::<f32>() * 1.57 + 0.5;
+            }
+            // New Transform
+            let mut new_transform = transform.clone();
+            new_transform.translation += transform.forward() * 0.05;
+    
+            new_transform.rotate(Quat::from_axis_angle(
+                random_orthogonal_vec3(transform.forward()),
+                rotation_angle
+            ));
+        
+            // Create new tree segment, which is a Leaf
+            spawn_tree_segment(
+                commands, 
+                segment_handle.clone(), 
+                green_material.clone(), 
+                new_transform,
+            );
+            commands.remove_one::<Leaf>(entity);
+            segment.children.push(commands.current_entity().unwrap());
+            
+        }
     }
     
-    for (mut _segment, _transform) in query_set.q1_mut().iter_mut() {
+    for (_entity, mut _segment, _transform, _leaf_opt) in query.iter_mut() {
         // Update Thickness
         //transform.apply_non_uniform_scale(Vec3::new(1.01, 1.0, 1.01));
     }
@@ -101,7 +105,7 @@ fn spawn_tree_segment(
             transform,
             ..Default::default()
         })
-        .with(TreeSegment {_thickness: 1.0, children: Vec::new()})
+        .with(TreeSegment {thickness: 1.0, children: Vec::new()})
         // New Segments are always leaves
         .with(Leaf{});
     
@@ -109,12 +113,9 @@ fn spawn_tree_segment(
 }
 
 struct Leaf;
-struct _Pose {
-  //  
-}
 
 struct TreeSegment {
-    _thickness: f32,
+    thickness: f32,
     children: Vec<Entity>,
 }
 
