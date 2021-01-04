@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::core::FixedTimestep;
+use rand::*;
 use std::f32::consts::PI;
 // use bevy::log::info;
 
@@ -33,6 +34,14 @@ fn tree_growth(
         // New Transform
         let mut new_transform = transform.clone();
         new_transform.translation += transform.forward() * 0.5;
+
+        new_transform.rotate(Quat::from_axis_angle(
+            // Orthogonal vector to 'forward()' with random 'up'
+            random_orthogonal_vec3(transform.forward()),
+            // Random rotation [-10, 10] degrees
+            random::<f32>() * 0.35 - 0.175,
+        ));
+ 
         // Create new tree segment, which is a Leaf
         spawn_tree_segment(
             commands, 
@@ -48,6 +57,15 @@ fn tree_growth(
         // Update Thickness
         //transform.apply_non_uniform_scale(Vec3::new(1.01, 1.0, 1.01));
     }
+}
+
+fn random_orthogonal_vec3(vec: Vec3) -> Vec3 {
+    // The cross product with any vector yields a vector that is orthogonal to both
+    let random_num = random::<f32>();
+    let random_vec = vec + Vec3::splat(random_num);
+    let orth_vec = random_vec.cross(vec);
+    assert!(vec.dot(orth_vec) < 0.01);
+    orth_vec
 }
 
 fn create_trees(
