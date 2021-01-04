@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::core::FixedTimestep;
+use std::f32::consts::PI;
 // use bevy::log::info;
 
 pub struct TreePlugin;
@@ -8,7 +9,7 @@ impl Plugin for TreePlugin {
         app.add_startup_system(create_trees.system())
         //.add_system(tree_growth.system())
         .add_stage_after(stage::UPDATE, "fixed_update", SystemStage::parallel()
-            .with_run_criteria(FixedTimestep::step(2.0))
+            .with_run_criteria(FixedTimestep::step(0.5))
             .with_system(tree_growth.system())
         );
     }
@@ -31,7 +32,8 @@ fn tree_growth(
     for (entity, mut segment, transform) in query_set.q0_mut().iter_mut() {
         // New Transform
         let mut new_transform = transform.clone();
-        new_transform.translation += transform.forward().normalize() * 1.0;
+        //new_transform.rotate(Quat::from_axis_angle(transform.forward(), PI/8.0));
+        new_transform.translation += Vec3::unit_y() * 1.0;
         // Create new tree segment, which is a Leaf
         spawn_tree_segment(
             commands, 
@@ -56,12 +58,14 @@ fn create_trees(
 ) {
     let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
+    let mut transform = Transform::from_translation(Vec3::new(4.0, 1.0, 4.0 ));
+    transform.apply_non_uniform_scale(Vec3::new(0.15,0.5,0.15));
 
     spawn_tree_segment(
         commands, 
         segment_handle, 
         green_material,  
-        Transform::from_translation(Vec3::new(4.0, 1.0, 4.0 ))
+        transform
     );
 }
 
@@ -71,17 +75,16 @@ fn spawn_tree_segment(
     material: Handle<StandardMaterial>,
     transform: Transform,
 ) -> Entity {
-    
     commands
-    .spawn(PbrBundle {
-        mesh,
-        material,
-        transform,
-        ..Default::default()
-    })
-    .with(TreeSegment {_thickness: 1.0, children: Vec::new()})
-    // New Segments are always leaves
-    .with(Leaf{});
+        .spawn(PbrBundle {
+            mesh,
+            material,
+            transform,
+            ..Default::default()
+        })
+        .with(TreeSegment {_thickness: 1.0, children: Vec::new()})
+        // New Segments are always leaves
+        .with(Leaf{});
     
     commands.current_entity().unwrap()
 }
