@@ -26,14 +26,13 @@ fn tree_growth(
         Query<(& TreeSegment, &mut Transform)>,
     )>
 ) {
-    let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
+    let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.gltf#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
     // Leaves always grow
     for (entity, mut segment, transform) in query_set.q0_mut().iter_mut() {
         // New Transform
         let mut new_transform = transform.clone();
-        //new_transform.rotate(Quat::from_axis_angle(transform.forward(), PI/8.0));
-        new_transform.translation += Vec3::unit_y() * 1.0;
+        new_transform.translation += transform.forward() * 0.5;
         // Create new tree segment, which is a Leaf
         spawn_tree_segment(
             commands, 
@@ -56,10 +55,12 @@ fn create_trees(
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
+    let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.gltf#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
-    let mut transform = Transform::from_translation(Vec3::new(4.0, 1.0, 4.0 ));
-    transform.apply_non_uniform_scale(Vec3::new(0.15,0.5,0.15));
+    let position = Vec3::new(4.0, 1.0, 4.0 );
+    let mut transform = Transform::from_translation(position);
+    transform.look_at(position - Vec3::unit_y(), Vec3::unit_x());
+    transform.apply_non_uniform_scale(Vec3::new(0.1, 0.1, 0.4));
 
     spawn_tree_segment(
         commands, 
