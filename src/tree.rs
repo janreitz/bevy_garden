@@ -30,19 +30,21 @@ fn tree_growth(
             let rotation_angle;
             if leaf_opt.is_some() {
                 // Leaves rotate slightly [0, 10] degrees
-                rotation_angle = random::<f32>() * 0.175;
+                let mean_regression = 0.02;
+                rotation_angle =  (1.0 - mean_regression) * random::<f32>() * 0.175;
+                // Remove LeafMarker because this is going to be a parent
+                commands.remove_one::<LeafSegment>(entity);
             } else {
                 // Trunk branches rotate more [30,90]
                 rotation_angle = random::<f32>() * 1.57 + 0.5;
             }
-            // New Transform
+
             let mut new_transform = transform.clone();
             new_transform.translation += transform.forward() * 0.05;
             new_transform.rotate(Quat::from_axis_angle(
                 random_orthogonal_vec3(transform.forward()),
                 rotation_angle
             ));
-        
             // Create new tree segment, which is a Leaf
             spawn_tree_segment(
                 commands, 
@@ -50,9 +52,7 @@ fn tree_growth(
                 green_material.clone(), 
                 new_transform,
             );
-            commands.remove_one::<LeafSegment>(entity);
             segment.children.push(commands.current_entity().unwrap());
-            
         }
     }
     
