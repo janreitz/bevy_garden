@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use rand::random;
 
 pub struct WeatherPlugin;
 impl Plugin for WeatherPlugin {
@@ -37,9 +38,10 @@ fn snow_simulation(
     if weather.weather_type != WeatherType::Snow {
         return;
     }
-    
+
     // Spawn new snowflakes and move existing ones downwards
-    let position = Vec3::new(2.0, 2.0, 2.0);
+    // Randomize x,y position
+    let position = Vec3::new(random::<f32>() * 8.0, 10.0, random::<f32>() * 8.0);
     spawn_snowflake(commands, meshes, materials, position);
 
     let dt = time.delta_seconds();
