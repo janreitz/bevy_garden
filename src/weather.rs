@@ -12,8 +12,8 @@ impl Plugin for WeatherPlugin {
 #[derive(PartialEq)]
 enum WeatherType {
     Snow,
-    Rain,
-    Sun,
+    _Rain,
+    _Sun,
 }
 
 impl Default for WeatherType{

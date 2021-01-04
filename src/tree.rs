@@ -37,7 +37,7 @@ fn spawn_tree_segment(
         },
         ..Default::default()
     })
-    .with(TreeSegment {thickness: 1.0, children: Vec::new()});
+    .with(TreeSegment {_thickness: 1.0, children: Vec::new()});
     
     commands.current_entity().unwrap()
 }
@@ -55,13 +55,13 @@ fn tree_growth(
 }
 
 struct Root;
-struct Leaf;
-struct Pose {
+struct _Leaf;
+struct _Pose {
   //  
 }
 
 struct TreeSegment {
-    thickness: f32,
+    _thickness: f32,
     children: Vec<Entity>,
 }
 
