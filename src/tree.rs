@@ -9,7 +9,7 @@ impl Plugin for TreePlugin {
         app.add_startup_system(create_trees.system())
         //.add_system(tree_growth.system())
         .add_stage_after(stage::UPDATE, "fixed_update", SystemStage::parallel()
-            .with_run_criteria(FixedTimestep::step(0.5))
+            .with_run_criteria(FixedTimestep::step(0.1))
             .with_system(tree_growth.system())
         );
     }
