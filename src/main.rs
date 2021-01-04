@@ -20,12 +20,6 @@ fn setup(
             transform: Transform::from_translation(Vec3::new(4.0,0.0,4.0)),
             ..Default::default()
         })
-        .spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0))),
-            material: materials.add(Color::rgb_u8(153,50,204).into()),
-            transform: Transform::from_translation(Vec3::new(4.0,0.5,4.0)),
-            ..Default::default()
-        })
         // Light
         .spawn(LightBundle {
             transform: Transform::from_translation(Vec3::new(4.0, 8.0,4.0)),
