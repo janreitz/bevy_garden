@@ -1,5 +1,8 @@
 use bevy::prelude::*;
 use rand::random;
+use rand::thread_rng;
+use rand_distr::{Distribution,Normal};
+   
 
 pub struct WeatherPlugin;
 impl Plugin for WeatherPlugin {
@@ -40,9 +43,13 @@ fn snow_simulation(
     }
 
     // Spawn new snowflakes and move existing ones downwards
-    // Randomize x,y position
+    // Randomize x,y position and size
     let position = Vec3::new(random::<f32>() * 8.0, 4.0, random::<f32>() * 8.0);
-    spawn_snowflake(commands, meshes, materials, position);
+    let mut rng = thread_rng();
+    let normal = Normal::new(0.001, 0.001).unwrap();
+    let volume: f32 = normal.sample(&mut rng);
+    let radius = volume.powf(0.33);
+    spawn_snowflake(commands, meshes, materials, position, radius);
 
     let dt = time.delta_seconds();
     for (entity, mut transform) in query.iter_mut() {
@@ -59,9 +66,10 @@ fn spawn_snowflake(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     position: Vec3,
+    radius: f32,
 ) {
     commands.spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Icosphere{radius: 0.1, subdivisions: 10})),
+            mesh: meshes.add(Mesh::from(shape::Icosphere{radius: radius, subdivisions: 10})),
             material: materials.add(Color::rgb(1.0, 0.9, 0.9).into()),
             transform: Transform::from_translation(position),
             ..Default::default()
