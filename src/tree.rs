@@ -1,61 +1,92 @@
 use bevy::prelude::*;
+use bevy::core::FixedTimestep;
 // use bevy::log::info;
 
 pub struct TreePlugin;
 impl Plugin for TreePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_startup_system(create_trees.system())
-        .add_system(tree_growth.system());
+        //.add_system(tree_growth.system())
+        .add_stage_after(stage::UPDATE, "fixed_update", SystemStage::parallel()
+            .with_run_criteria(FixedTimestep::step(2.0))
+            .with_system(tree_growth.system())
+        );
+    }
+}
+
+fn tree_growth(
+    commands: &mut Commands,
+    asset_server: ResMut<AssetServer>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query_set: QuerySet<(
+        // leaf_segments: 
+        Query<(&mut TreeSegment, & Transform), With<Leaf>>,
+        // all_segments: 
+        Query<(& TreeSegment, &mut Transform)>,
+    )>
+) {
+    let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
+    let green_material = materials.add(Color::GREEN.into());
+    // Leaves always grow
+    for (mut segment, transform) in query_set.q0_mut().iter_mut() {
+        // New Transform
+        let mut new_transform = transform.clone();
+        new_transform.translation += transform.forward().normalize() * 1.0;
+        // Create new tree segment, which is a Leaf
+        spawn_tree_segment(
+            commands, 
+            segment_handle.clone(), 
+            green_material.clone(), 
+            new_transform,
+        );
+
+        segment.children.push(commands.current_entity().unwrap());
+    }
+    
+    for (mut _segment, _transform) in query_set.q1_mut().iter_mut() {
+        // Update Thickness
+        //transform.apply_non_uniform_scale(Vec3::new(1.01, 1.0, 1.01));
     }
 }
 
 fn create_trees(
     commands: &mut Commands,
-    asset_server: Res<AssetServer>,
+    asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    spawn_tree_segment(commands, &asset_server, &mut materials, Vec3::new(4.0, 1.0, 4.0 ));
-    commands.with(Root);
+    let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
+    let green_material = materials.add(Color::GREEN.into());
+
+    spawn_tree_segment(
+        commands, 
+        segment_handle, 
+        green_material,  
+        Transform::from_translation(Vec3::new(4.0, 1.0, 4.0 ))
+    );
 }
 
 fn spawn_tree_segment(
     commands: &mut Commands,
-    asset_server: &Res<AssetServer>,
-    materials: &mut ResMut<Assets<StandardMaterial>>,
-    position: Vec3,
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
+    transform: Transform,
 ) -> Entity {
-    let tree_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
-    let green_material = materials.add(Color::GREEN.into());
+    
     commands
     .spawn(PbrBundle {
-        mesh: tree_handle,
-        material: green_material,
-        transform: {
-            let mut transform = Transform::from_translation(position);
-            transform.apply_non_uniform_scale(Vec3::new(0.2, 0.2, 0.2));
-            transform
-        },
+        mesh,
+        material,
+        transform,
         ..Default::default()
     })
-    .with(TreeSegment {_thickness: 1.0, children: Vec::new()});
+    .with(TreeSegment {_thickness: 1.0, children: Vec::new()})
+    // New Segments are always leaves
+    .with(Leaf{});
     
     commands.current_entity().unwrap()
 }
 
-fn tree_growth(
-    commands: &mut Commands,
-    asset_server: Res<AssetServer>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut query: Query<&mut TreeSegment, With<Root>>,
-) {
-    for mut tree_segment in query.iter_mut() {
-        tree_segment.grow(commands, &asset_server, &mut materials);
-        //transform.apply_non_uniform_scale(Vec3::new(1.01, 1.0, 1.01));
-    }
-}
-
-struct Root;
-struct _Leaf;
+struct Leaf;
 struct _Pose {
   //  
 }
@@ -65,28 +96,7 @@ struct TreeSegment {
     children: Vec<Entity>,
 }
 
-
 impl TreeSegment {
-    fn is_leaf(&self) -> bool {
-        self.children.len() == 0
-    }
-
-    fn grow(
-        &mut self,
-        commands: &mut Commands,
-        asset_server: &Res<AssetServer>,
-        materials: &mut ResMut<Assets<StandardMaterial>>,
-    ) {
-        if self.is_leaf() {
-            self.children.push(spawn_tree_segment(
-                commands,
-                asset_server,
-                materials,
-                Vec3::new(4.0, 2.0, 4.0 ),
-            ));
-        }
-    }
-    
     //     // for child in self.children.iter_mut() {
     //     //     child.grow(commands);
     //     // }
