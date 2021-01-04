@@ -20,7 +20,7 @@ fn tree_growth(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query_set: QuerySet<(
         // leaf_segments: 
-        Query<(&mut TreeSegment, & Transform), With<Leaf>>,
+        Query<(Entity, &mut TreeSegment, & Transform), With<Leaf>>,
         // all_segments: 
         Query<(& TreeSegment, &mut Transform)>,
     )>
@@ -28,7 +28,7 @@ fn tree_growth(
     let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.glb#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
     // Leaves always grow
-    for (mut segment, transform) in query_set.q0_mut().iter_mut() {
+    for (entity, mut segment, transform) in query_set.q0_mut().iter_mut() {
         // New Transform
         let mut new_transform = transform.clone();
         new_transform.translation += transform.forward().normalize() * 1.0;
@@ -39,7 +39,7 @@ fn tree_growth(
             green_material.clone(), 
             new_transform,
         );
-
+        commands.remove_one::<Leaf>(entity);
         segment.children.push(commands.current_entity().unwrap());
     }
     
