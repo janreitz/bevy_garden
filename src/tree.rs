@@ -33,7 +33,7 @@ fn tree_growth(
     for (entity, mut segment, transform) in query_set.q0_mut().iter_mut() {
         // New Transform
         let mut new_transform = transform.clone();
-        new_transform.translation += transform.forward() * 0.5;
+        new_transform.translation += transform.forward() * 0.05;
 
         new_transform.rotate(Quat::from_axis_angle(
             // Orthogonal vector to 'forward()' with random 'up'
@@ -78,7 +78,7 @@ fn create_trees(
     let position = Vec3::new(4.0, 1.0, 4.0 );
     let mut transform = Transform::from_translation(position);
     transform.look_at(position - Vec3::unit_y(), Vec3::unit_x());
-    transform.apply_non_uniform_scale(Vec3::new(0.1, 0.1, 0.4));
+    transform.apply_non_uniform_scale(Vec3::new(0.01, 0.01, 0.04));
 
     spawn_tree_segment(
         commands, 
