@@ -19,7 +19,7 @@ fn tree_growth(
     commands: &mut Commands,
     asset_server: ResMut<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut query: Query<(Entity, &mut TreeSegment, & Transform, Option<&Leaf>)>,
+    mut query: Query<(Entity, &mut TreeSegment, & Transform, Option<&LeafSegment>)>,
 ) {
     let segment_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/cylinder.gltf#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
@@ -38,7 +38,6 @@ fn tree_growth(
             // New Transform
             let mut new_transform = transform.clone();
             new_transform.translation += transform.forward() * 0.05;
-    
             new_transform.rotate(Quat::from_axis_angle(
                 random_orthogonal_vec3(transform.forward()),
                 rotation_angle
@@ -51,7 +50,7 @@ fn tree_growth(
                 green_material.clone(), 
                 new_transform,
             );
-            commands.remove_one::<Leaf>(entity);
+            commands.remove_one::<LeafSegment>(entity);
             segment.children.push(commands.current_entity().unwrap());
             
         }
@@ -107,12 +106,12 @@ fn spawn_tree_segment(
         })
         .with(TreeSegment {thickness: 1.0, children: Vec::new()})
         // New Segments are always leaves
-        .with(Leaf{});
+        .with(LeafSegment{});
     
     commands.current_entity().unwrap()
 }
 
-struct Leaf;
+struct LeafSegment;
 
 struct TreeSegment {
     thickness: f32,
