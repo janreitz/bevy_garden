@@ -31,6 +31,7 @@ struct Weather {
 struct SnowFlake;
 
 fn snow_simulation(
+    mut enough_snowflakes_spawned: Local<bool>,
     weather: Res<Weather>,
     time: Res<Time>,
     commands: &mut Commands,
@@ -43,8 +44,7 @@ fn snow_simulation(
     }
 
     let spawn_height = 2.0;
-    let flakes_per_iteration = 1;
-    let mut reuse_count = 0;
+    let snowflakes_per_iteration = 1;
 
     // Move existing Snowflakes ones downwards
     let dt = time.delta_seconds();
@@ -52,19 +52,18 @@ fn snow_simulation(
         // Reuse Snowflakes once they are below the ground
         if transform.translation.y < 0.0 {
             transform.translation += Vec3::new(0.0, spawn_height, 0.0);
-            // println!("Reusing Snowflake");
-            reuse_count += 1;
+            // Once the first snowflake hits the ground, enough have spawned
+            *enough_snowflakes_spawned = true;
         }
         transform.translation += Vec3::unit_y() * -dt;
     }
 
-    let snowflakes_to_spawn = flakes_per_iteration - reuse_count;
     // Spawn new snowflakes
-    if snowflakes_to_spawn > 0 {
+    if !*enough_snowflakes_spawned {
         let mesh_handle = meshes.add(Mesh::from(shape::Icosphere{radius: 1.0, subdivisions: 10}));
         let material_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
 
-        for _ in 0..snowflakes_to_spawn {
+        for _ in 0..snowflakes_per_iteration {
             // Randomize x,y position and Snowflake Volume
             // *total_snowflakes += 1;
             // println!("Spawning Snowflake, total snowflakes: {}", *total_snowflakes);
