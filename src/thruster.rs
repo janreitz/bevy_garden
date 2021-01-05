@@ -6,6 +6,7 @@ use bevy::{
         Input,
     },
 };
+use std::f32::consts::PI;
 
 pub struct ThrusterPlugin;
 impl Plugin for ThrusterPlugin {
@@ -22,12 +23,13 @@ struct Thruster {
 
 fn thruster_control(
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&Thruster, &mut RigidBody)>
+    mut query: Query<(&Thruster, &mut RigidBody, &Transform)>
 ) {
     if keyboard_input.pressed(KeyCode::Space) {
-        for (thruster, mut rb) in query.iter_mut() {
-            // TODO adjust force direction to RigidBody rotation 
-            rb.apply_force(thruster.force);
+        for (thruster, mut rb, transform) in query.iter_mut() {
+            // adjust force direction to RigidBody rotation 
+            let resulting_force = transform.rotation.mul_vec3(thruster.force);
+            rb.apply_force(resulting_force);
         }
     }
 }
@@ -39,11 +41,13 @@ fn spawn_test_thruster(
 ) {
     let monkey_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/monkey.glb#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
+    let mut transform = Transform::from_translation(Vec3::splat(4.0));
+    transform.rotate(Quat::from_axis_angle(Vec3::unit_x(), PI / 8.0));
     commands
     .spawn(PbrBundle {
         mesh: monkey_handle,
         material: green_material,
-        transform: Transform::from_translation(Vec3::splat(4.0)),
+        transform: transform,
         ..Default::default()
     })
     .with(RigidBody::default())
