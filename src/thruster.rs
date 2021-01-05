@@ -47,7 +47,7 @@ fn spawn_test_thruster(
     })
     .with(RigidBody::default())
     .with(Thruster {
-        force: Vec3::unit_y(),
+        force: Vec3::unit_y() * 20.0,
     })
     ;
 }
