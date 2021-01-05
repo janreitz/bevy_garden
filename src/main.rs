@@ -8,6 +8,8 @@ mod weather;
 use weather::*;
 mod dynamics;
 use dynamics::*;
+mod thruster;
+use thruster::*;
 
 fn setup(
     commands: &mut Commands,
@@ -52,6 +54,7 @@ fn main() {
         .add_plugin(TreePlugin)
         .add_plugin(WeatherPlugin)
         .add_plugin(DynamicsPlugin)
+        .add_plugin(ThrusterPlugin)
         .add_system(bevy::input::system::exit_on_esc_system.system())
         // Startup systems are called only one, at startup
         .add_startup_system(
