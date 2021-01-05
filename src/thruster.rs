@@ -1,6 +1,11 @@
 use crate::dynamics::RigidBody;
-use bevy::prelude::*;
-use bevy::input::keyboard::{KeyboardInput, KeyCode};
+use bevy::{
+    prelude::*,
+    input::{
+        keyboard::KeyCode,
+        Input,
+    },
+};
 
 pub struct ThrusterPlugin;
 impl Plugin for ThrusterPlugin {
@@ -16,14 +21,12 @@ struct Thruster {
 }
 
 fn thruster_control(
-    keyboard: Res<KeyboardInput>,
+    keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<(&Thruster, &mut RigidBody)>
 ) {
-    if let Some(key_code) = keyboard.key_code {
-        if key_code == KeyCode::Space {
-            for (thruster, mut rb) in query.iter_mut() {
-                rb.apply_force(thruster.force);
-            }
+    if keyboard_input.pressed(KeyCode::Space) {
+        for (thruster, mut rb) in query.iter_mut() {
+            rb.apply_force(thruster.force);
         }
     }
 }
