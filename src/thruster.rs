@@ -100,7 +100,7 @@ fn thruster_3d_control(
             let resulting_torque = transform.rotation.mul_vec3(thruster.torque_counter_clockwise);
             rb.apply_torque(resulting_torque);
         }
-        if keyboard_input.pressed(KeyCode::D) {
+        if keyboard_input.pressed(KeyCode::E) {
 
             let resulting_torque = transform.rotation.mul_vec3(thruster.torque_clockwise);
             rb.apply_torque(resulting_torque);
