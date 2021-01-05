@@ -41,6 +41,8 @@ fn dynamic_simulation(
     for (mut rigid_body, _transform) in query.iter_mut() {
         let force = rigid_body.force / rigid_body.mass * dt;
         rigid_body.velocity += force;
+        // reset force
+        rigid_body.force = Vec3::zero();
     } 
     // Update positions
     for (rigid_body, mut transform) in query.iter_mut() {
