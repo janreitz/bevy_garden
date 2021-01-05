@@ -10,7 +10,7 @@ impl Plugin for DynamicsPlugin {
     }
 }
 
-struct RigidBody {
+pub struct RigidBody {
     mass: f32,
     velocity: Vec3,
     force: Vec3,
@@ -23,6 +23,12 @@ impl Default for RigidBody {
             velocity: Vec3::new(0.0,0.0,0.0),
             force: Vec3::new(0.0,0.0,0.0),
         }
+    }
+}
+
+impl RigidBody {
+    pub fn apply_force(&mut self, force: Vec3) {
+        self.force += force;
     }
 }
 
@@ -42,7 +48,7 @@ fn dynamic_simulation(
     }
 }
 
-struct Gravity{
+pub struct Gravity{
     acceleration: Vec3,
 }
 
