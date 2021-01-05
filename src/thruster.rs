@@ -64,6 +64,8 @@ struct Thruster3d{
     force_right: Vec3,
     force_forward: Vec3,
     force_back: Vec3,
+    torque_clockwise: Vec3,
+    torque_counter_clockwise: Vec3,
 }
 
 fn thruster_3d_control(
@@ -93,6 +95,16 @@ fn thruster_3d_control(
             let resulting_force = transform.rotation.mul_vec3(thruster.force_right);
             rb.apply_force(resulting_force);
         }
+        if keyboard_input.pressed(KeyCode::Q) {
+
+            let resulting_torque = transform.rotation.mul_vec3(thruster.torque_counter_clockwise);
+            rb.apply_torque(resulting_torque);
+        }
+        if keyboard_input.pressed(KeyCode::D) {
+
+            let resulting_torque = transform.rotation.mul_vec3(thruster.torque_clockwise);
+            rb.apply_torque(resulting_torque);
+        }
     }
 }
 
@@ -118,6 +130,8 @@ fn spawn_test_thruster_3d(
         force_right: Vec3::unit_x() * -5.0,
         force_forward: Vec3::unit_z() * 5.0,
         force_back: Vec3::unit_z() * -5.0,
+        torque_clockwise: Vec3::unit_y() * -1.0,
+        torque_counter_clockwise: Vec3::unit_y() * 1.0,
     })
     ;
 }
