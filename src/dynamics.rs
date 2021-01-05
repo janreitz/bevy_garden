@@ -49,11 +49,20 @@ fn dynamic_simulation(
         rigid_body.velocity += acc;
         // reset force
         rigid_body.force = Vec3::zero();
-
+        
+        // I think if I use an inertia tensor, I have to invert it here
+        // I need to check if '/' is piecewise division
+        let ang_acc = rigid_body.torque / rigid_body.inertia * dt;
+        rigid_body.angular_velocity += ang_acc;
+        // reset force
+        rigid_body.torque = Vec3::zero();
     } 
     // Update positions
     for (rigid_body, mut transform) in query.iter_mut() {
         transform.translation += rigid_body.velocity * dt;
+        let angle = (rigid_body.angular_velocity * dt).length();
+        let axis = rigid_body.angular_velocity.clone().normalize();
+        transform.rotate(Quat::from_axis_angle(axis, angle));
     }
 }
 
