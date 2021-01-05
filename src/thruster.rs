@@ -123,7 +123,18 @@ fn spawn_test_thruster_3d(
         transform: transform,
         ..Default::default()
     })
-    .with(RigidBody::default())
+    .with(RigidBody::new(
+         1.0,
+        Mat3::from_cols(
+            Vec3::new(1.0,5.0, 0.0),
+            Vec3::new(5.0, 1.0, 0.0),
+            Vec3::new(0.0, 0.0, 1.0),
+        ),
+        Vec3::zero(),
+        Vec3::zero(),
+        Vec3::zero(),
+        Vec3::zero(),
+    ))
     .with(Thruster3d {
         force_up: Vec3::unit_y() * 20.0,
         force_left: Vec3::unit_x() * 5.0,
