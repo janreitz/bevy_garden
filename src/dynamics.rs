@@ -55,7 +55,7 @@ fn dynamic_simulation(
         rigid_body.force = Vec3::zero();
         
         // I think if I use an inertia tensor, I have to invert it here
-        // I need to check if '/' is piecewise division
+        // '/' is elementwise division
         let ang_acc = rigid_body.torque / rigid_body.inertia * dt;
         rigid_body.angular_velocity += ang_acc;
         // reset force
@@ -64,9 +64,12 @@ fn dynamic_simulation(
     // Update positions
     for (rigid_body, mut transform) in query.iter_mut() {
         transform.translation += rigid_body.velocity * dt;
-        let angle = (rigid_body.angular_velocity * dt).length();
-        let axis = rigid_body.angular_velocity.clone().normalize();
-        transform.rotate(Quat::from_axis_angle(axis, angle));
+        let angle = rigid_body.angular_velocity.length() * dt;
+        if angle != 0.0 {
+            let axis = rigid_body.angular_velocity.clone().normalize();
+            // Is rotation with (0,0,0),0 neutral? -> Yes
+            transform.rotate(Quat::from_axis_angle(axis, angle));
+        }
     }
 }
 
