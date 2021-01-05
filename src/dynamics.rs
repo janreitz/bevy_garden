@@ -49,15 +49,15 @@ fn dynamic_simulation(
     let dt = time.delta_seconds();
     // Update velocities
     for (mut rigid_body, _transform) in query.iter_mut() {
-        let acc = rigid_body.force / rigid_body.mass * dt;
-        rigid_body.velocity += acc;
+        let acc = rigid_body.force / rigid_body.mass;
+        rigid_body.velocity += acc * dt;
         // reset force
         rigid_body.force = Vec3::zero();
         
         // I think if I use an inertia tensor, I have to invert it here
         // '/' is elementwise division
-        let ang_acc = rigid_body.torque / rigid_body.inertia * dt;
-        rigid_body.angular_velocity += ang_acc;
+        let ang_acc = rigid_body.torque / rigid_body.inertia;
+        rigid_body.angular_velocity += ang_acc * dt;
         // reset force
         rigid_body.torque = Vec3::zero();
     } 
