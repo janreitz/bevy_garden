@@ -41,8 +41,8 @@ fn dynamic_simulation(
     let dt = time.delta_seconds();
     // Update velocities
     for (mut rigid_body, _transform) in query.iter_mut() {
-        let force = rigid_body.force / rigid_body.mass * dt;
-        rigid_body.velocity += force;
+        let acc = rigid_body.force / rigid_body.mass * dt;
+        rigid_body.velocity += acc;
         // reset force
         rigid_body.force = Vec3::zero();
     } 
