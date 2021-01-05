@@ -6,6 +6,8 @@ mod tree;
 use tree::*;
 mod weather;
 use weather::*;
+mod dynamics;
+use dynamics::*;
 
 fn setup(
     commands: &mut Commands,
@@ -49,6 +51,7 @@ fn main() {
         .add_plugin(PanOrbitCameraPlugin)
         .add_plugin(TreePlugin)
         .add_plugin(WeatherPlugin)
+        .add_plugin(DynamicsPlugin)
         .add_system(bevy::input::system::exit_on_esc_system.system())
         // Startup systems are called only one, at startup
         .add_startup_system(
