@@ -14,7 +14,9 @@ pub struct RigidBody {
     mass: f32,
     inertia: Mat3,
     velocity: Vec3,
+    angular_velocity: Vec3,
     force: Vec3,
+    torque: Vec3,
 }
 
 impl Default for RigidBody {
@@ -23,7 +25,9 @@ impl Default for RigidBody {
             mass: 1.0,
             inertia: Mat3::identity(),
             velocity: Vec3::new(0.0,0.0,0.0),
+            angular_velocity: Vec3::new(0.0,0.0,0.0),
             force: Vec3::new(0.0,0.0,0.0),
+            torque: Vec3::new(0.0,0.0,0.0),
         }
     }
 }
