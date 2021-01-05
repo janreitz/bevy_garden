@@ -12,7 +12,7 @@ impl Plugin for DynamicsPlugin {
 
 pub struct RigidBody {
     mass: f32,
-    inertia: Mat3,
+    inertia: Vec3,
     velocity: Vec3,
     angular_velocity: Vec3,
     force: Vec3,
@@ -23,7 +23,7 @@ impl Default for RigidBody {
     fn default() -> RigidBody {
         RigidBody {
             mass: 1.0,
-            inertia: Mat3::identity(),
+            inertia: Vec3::one(),
             velocity: Vec3::new(0.0,0.0,0.0),
             angular_velocity: Vec3::new(0.0,0.0,0.0),
             force: Vec3::new(0.0,0.0,0.0),
@@ -49,6 +49,7 @@ fn dynamic_simulation(
         rigid_body.velocity += acc;
         // reset force
         rigid_body.force = Vec3::zero();
+
     } 
     // Update positions
     for (rigid_body, mut transform) in query.iter_mut() {
