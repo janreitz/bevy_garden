@@ -12,7 +12,7 @@ impl Plugin for DynamicsPlugin {
 
 pub struct RigidBody {
     mass: f32,
-    inertia: Vec3,
+    inverted_inertia: Mat3,
     velocity: Vec3,
     angular_velocity: Vec3,
     force: Vec3,
@@ -23,7 +23,7 @@ impl Default for RigidBody {
     fn default() -> RigidBody {
         RigidBody {
             mass: 1.0,
-            inertia: Vec3::one(),
+            inverted_inertia: Mat3::identity(),
             velocity: Vec3::new(0.0,0.0,0.0),
             angular_velocity: Vec3::new(0.0,0.0,0.0),
             force: Vec3::new(0.0,0.0,0.0),
@@ -33,6 +33,25 @@ impl Default for RigidBody {
 }
 
 impl RigidBody {
+    pub fn new(
+        mass: f32,
+        inertia: Mat3,
+        velocity: Vec3,
+        angular_velocity: Vec3,
+        force: Vec3,
+        torque: Vec3,
+    ) -> RigidBody {
+        let inverted_inertia = inertia.inverse();
+        RigidBody {
+                mass,
+                inverted_inertia,
+                velocity,
+                angular_velocity,
+                force,
+                torque,
+        }
+    }
+
     pub fn apply_force(&mut self, force: Vec3) {
         self.force += force;
     }
@@ -56,7 +75,7 @@ fn dynamic_simulation(
         
         // I think if I use an inertia tensor, I have to invert it here
         // '/' is elementwise division
-        let ang_acc = rigid_body.torque / rigid_body.inertia;
+        let ang_acc = rigid_body.inverted_inertia * rigid_body.torque;
         rigid_body.angular_velocity += ang_acc * dt;
         // reset force
         rigid_body.torque = Vec3::zero();
