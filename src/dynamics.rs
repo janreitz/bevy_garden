@@ -36,6 +36,10 @@ impl RigidBody {
     pub fn apply_force(&mut self, force: Vec3) {
         self.force += force;
     }
+
+    pub fn apply_torque(&mut self, torque: Vec3) {
+        self.torque += torque;
+    }
 }
 
 fn dynamic_simulation(
