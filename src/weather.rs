@@ -34,44 +34,64 @@ fn snow_simulation(
     weather: Res<Weather>,
     time: Res<Time>,
     commands: &mut Commands,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<StandardMaterial>>,
-    mut query: Query<(Entity, &mut Transform), With<SnowFlake>>
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut query: Query<&mut Transform, With<SnowFlake>>
 ) {
     if weather.weather_type != WeatherType::Snow {
         return;
     }
 
-    // Spawn new snowflakes and move existing ones downwards
-    // Randomize x,y position and size
-    let position = Vec3::new(random::<f32>() * 8.0, 4.0, random::<f32>() * 8.0);
-    let mut rng = thread_rng();
-    let normal = Normal::new(0.001, 0.001).unwrap();
-    let volume: f32 = normal.sample(&mut rng);
-    let radius = volume.powf(0.33);
-    spawn_snowflake(commands, meshes, materials, position, radius);
+    let spawn_height = 2.0;
+    let flakes_per_iteration = 1;
+    let mut reuse_count = 0;
 
+    // Move existing Snowflakes ones downwards
     let dt = time.delta_seconds();
-    for (entity, mut transform) in query.iter_mut() {
-        // Remove Snowflakes once they are below the ground
+    for mut transform in query.iter_mut() {
+        // Reuse Snowflakes once they are below the ground
         if transform.translation.y < 0.0 {
-            commands.despawn(entity);
+            transform.translation += Vec3::new(0.0, spawn_height, 0.0);
+            // println!("Reusing Snowflake");
+            reuse_count += 1;
         }
         transform.translation += Vec3::unit_y() * -dt;
     }
+
+    let snowflakes_to_spawn = flakes_per_iteration - reuse_count;
+    // Spawn new snowflakes
+    if snowflakes_to_spawn > 0 {
+        let mesh_handle = meshes.add(Mesh::from(shape::Icosphere{radius: 1.0, subdivisions: 10}));
+        let material_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
+
+        for _ in 0..snowflakes_to_spawn {
+            // Randomize x,y position and Snowflake Volume
+            // *total_snowflakes += 1;
+            // println!("Spawning Snowflake, total snowflakes: {}", *total_snowflakes);
+            let position = Vec3::new(random::<f32>() * 8.0, spawn_height, random::<f32>() * 8.0);
+            let mut rng = thread_rng();
+            let normal = Normal::new(0.001, 0.001).unwrap();
+            let volume: f32 = normal.sample(&mut rng);
+            let radius = volume.powf(0.33);
+            spawn_snowflake(commands, mesh_handle.clone(), material_handle.clone(), position, radius);
+        }
+    }
+
 }
 
 fn spawn_snowflake(
     commands: &mut Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mesh: Handle<Mesh>,
+    material: Handle<StandardMaterial>,
     position: Vec3,
     radius: f32,
 ) {
+    let mut transform = Transform::from_translation(position);
+    transform.apply_non_uniform_scale(Vec3::new(radius, radius, radius));
     commands.spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Icosphere{radius: radius, subdivisions: 10})),
-            material: materials.add(Color::rgb(1.0, 0.9, 0.9).into()),
-            transform: Transform::from_translation(position),
+            mesh: mesh,
+            material: material,
+            transform: transform,
             ..Default::default()
         })
         .with(SnowFlake);
