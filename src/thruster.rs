@@ -26,6 +26,7 @@ fn thruster_control(
 ) {
     if keyboard_input.pressed(KeyCode::Space) {
         for (thruster, mut rb) in query.iter_mut() {
+            // TODO adjust force direction to RigidBody rotation 
             rb.apply_force(thruster.force);
         }
     }
