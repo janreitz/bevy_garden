@@ -12,6 +12,7 @@ impl Plugin for DynamicsPlugin {
 
 pub struct RigidBody {
     mass: f32,
+    inertia: Mat3,
     velocity: Vec3,
     force: Vec3,
 }
@@ -20,6 +21,7 @@ impl Default for RigidBody {
     fn default() -> RigidBody {
         RigidBody {
             mass: 1.0,
+            inertia: Mat3::identity(),
             velocity: Vec3::new(0.0,0.0,0.0),
             force: Vec3::new(0.0,0.0,0.0),
         }
