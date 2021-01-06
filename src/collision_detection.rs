@@ -218,10 +218,10 @@ fn test_color_according_to_collision(
 
 fn test_spawn_colliding_bodies(
     commands: &mut Commands,
-    asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let monkey_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/monkey.glb#Mesh0/Primitive0");
+    let mesh = meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0)));
     let green_material = materials.add(Color::GREEN.into());
 
     let mut transforms: Vec<Transform> = Vec::new();
@@ -234,7 +234,7 @@ fn test_spawn_colliding_bodies(
     for t in transforms.iter() {
         commands
         .spawn(PbrBundle {
-            mesh: monkey_handle.clone(),
+            mesh: mesh.clone(),
             material: green_material.clone(),
             transform: t.clone(),
             ..Default::default()
@@ -244,3 +244,20 @@ fn test_spawn_colliding_bodies(
         ));
     }
 }
+
+#[test]
+fn test_intersects_identical_boxes() {
+    let box_1 = BoundingBox::default();
+    assert!(intersects(&box_1, &box_1))
+}
+
+#[test]
+fn test_intersects_separate_boxes() {
+    let box_1 = BoundingBox::default();
+    let box_2 = BoundingBox::new(
+        Vec3::splat(3.0),
+        Vec3::splat(4.0)
+    );
+    assert!(!intersects(&box_1, &box_2))
+}
+
