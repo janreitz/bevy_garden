@@ -162,7 +162,7 @@ impl Collidable {
     }
 
     pub fn collides(&self) -> bool {
-        self.collides_with.len() == 0
+        self.collides_with.len() != 0
     }
 }
 
