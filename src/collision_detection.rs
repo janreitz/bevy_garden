@@ -186,14 +186,18 @@ fn collision_detection(
     // For each cell
     for map in spatial_hash.hash.values_mut() {
         assert!(!map.is_empty());
+        if map.len() < 2 {
+            continue;
+        }
         // I think I need this copy to iterate over the entities with defined order
         let keys: Vec<Entity> = map.keys().map(|e| e.clone()).collect();
         let length = keys.len();
+        assert!(length >= 2);
         // Compare elements in the cell with each other
         for (i, entity) in keys.iter().enumerate() {
             let (collidable, transform) = map.get_mut(entity).unwrap();
             let bb = collidable.bounding_box.transformed(transform);
-            for j in i..length {
+            for j in i+1..length {
                 let other_entity = keys[j];
                 let (other_collidable, other_transform) = map.get_mut(&other_entity).unwrap();
                 let other_bb = other_collidable.bounding_box.transformed(&other_transform);
