@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub struct CollisionDetectionPlugin;
 impl Plugin for CollisionDetectionPlugin {
@@ -107,7 +107,8 @@ fn intersects(box_1: &BoundingBox, box_2: &BoundingBox) -> bool {
 }
 
 struct SpatialHash {
-    hash: HashMap<(u16, u16, u16), HashSet<Entity>>,
+    hash: HashMap<(u16, u16, u16), HashMap<Entity, (Collidable, Transform)>>,
+    // Make sure the cell_length is larger than the biggest BoundingBox
     cell_length: f32,
 }
 
@@ -126,9 +127,9 @@ impl SpatialHash {
         self.hash.clear();
     }
 
-    fn insert(&mut self, entity: Entity, bounding_box: BoundingBox) {
+    fn insert(&mut self, entity: Entity, collidable: Collidable, transform: Transform) {
         // Discretize all corners of the bounding box
-        for corner in bounding_box {
+        for corner in collidable.bounding_box.transformed(&transform) {
             // Add them to every unique GridCell
             let discretized_position = (
                 (corner.x / self.cell_length).round() as u16,
@@ -136,16 +137,17 @@ impl SpatialHash {
                 (corner.z / self.cell_length).round() as u16,
             );
             if let Some(set) = self.hash.get_mut(&discretized_position) {
-                set.insert(entity);
+                set.insert(entity, (collidable.clone(), transform));
             } else {
-                let mut hash_set = HashSet::new();
-                hash_set.insert(entity);
-                self.hash.insert(discretized_position, hash_set);
+                let mut map = HashMap::new();
+                map.insert(entity, (collidable.clone(), transform));
+                self.hash.insert(discretized_position, map);
             }
         }
     }
 }
 
+#[derive(Clone, Default)]
 pub struct Collidable {
    bounding_box: BoundingBox,
    collides_with: Vec<Entity> 
@@ -172,45 +174,27 @@ fn collision_detection(
     // TODO do not rebuild the hash every iteration 
     spatial_hash.clear();
     for (entity, collidable, transform) in query.iter_mut() {
-        // Add entities to the Hash
-        spatial_hash.insert(entity, collidable.bounding_box.transformed(transform));
+        // Add entities to the Hash, maybe I can get rid of the clone?
+        spatial_hash.insert(entity, collidable.clone(), transform.clone());
     }
-    for set in spatial_hash.hash.values() {
-        // Query and transform all bounding boxes
-        let mut entities_and_boxes: Vec<(Entity, BoundingBox)>;
-        // Compare every element with each other
 
-        // let entities_and_boxes: Vec<> = set.iter()
-        //     .filter_map(|e| {
-        //         if let Ok(collidable) = query.get_component_mut::<Collidable>(*e){
-        //             Some((e, collidable.bounding_box.clone()))
-        //         } else {
-        //             None
-        //         }
-        //     })
-        //     .filter_map(|(e, b)| {
-        //         if let Ok(transform) = query.get_component_mut::<Transform>(*e){
-        //             Some((e.to_owned(), b.transformed(&transform)))
-        //         } else {
-        //             None
-        //         }
-        //     })
-        //     .collect();
-                 
-
-        for entity in set.iter() {
-            let mut bounding_box = BoundingBox::default();
-            {
-                if let Ok(collidable) = query.get_component_mut::<Collidable>(*entity){
-                    bounding_box = collidable.bounding_box.clone();
+    // For each cell
+    for map in spatial_hash.hash.values_mut() {
+        // I think I need this copy to iterate over the entities with defined order
+        let keys: Vec<Entity> = map.keys().map(|e| e.clone()).collect();
+        let length = keys.len();
+        // Compare elements in the cell with each other
+        for (i, entity) in keys.iter().enumerate() {
+            let (collidable, transform) = map.get_mut(entity).unwrap();
+            let bb = collidable.bounding_box.transformed(transform);
+            for j in i..length {
+                let other_entity = keys[j];
+                let (other_collidable, other_transform) = map.get_mut(&other_entity).unwrap();
+                let other_bb = other_collidable.bounding_box.transformed(&other_transform);
+                if intersects(&bb, &other_bb) {
+                    // Mark it in the collidable
+                    other_collidable.collides_with.push(*entity);
                 }
-            }
-            if let Ok(transform) = query.get_component_mut::<Transform>(*entity){
-                let entity_and_box = (
-                    entity.to_owned(), 
-                    bounding_box.transformed(&transform),
-                );
-                entities_and_boxes.push(entity_and_box.to_owned());
             }
         }
     }
@@ -239,15 +223,24 @@ fn test_spawn_colliding_bodies(
 ) {
     let monkey_handle: Handle<Mesh> = asset_server.load("models/basic_shapes/monkey.glb#Mesh0/Primitive0");
     let green_material = materials.add(Color::GREEN.into());
-    let transform = Transform::from_translation(Vec3::splat(3.0));
-    commands
-    .spawn(PbrBundle {
-        mesh: monkey_handle,
-        material: green_material,
-        transform: transform,
-        ..Default::default()
-    })
-    .with(Collidable::new(
-        BoundingBox::default()
-    ));
+
+    let mut transforms: Vec<Transform> = Vec::new();
+    transforms.push(Transform::from_translation(Vec3::new(1.0, 1.0, 1.0)));
+    transforms.push(Transform::from_translation(Vec3::new(2.0, 2.0, 1.0)));
+    transforms.push(Transform::from_translation(Vec3::new(4.0, 4.0, 4.0)));
+    transforms.push(Transform::from_translation(Vec3::new(1.0, 3.0, 1.0)));
+    transforms.push(Transform::from_translation(Vec3::new(3.0, 2.0, 1.0)));
+    
+    for t in transforms.iter() {
+        commands
+        .spawn(PbrBundle {
+            mesh: monkey_handle.clone(),
+            material: green_material.clone(),
+            transform: t.clone(),
+            ..Default::default()
+        })
+        .with(Collidable::new(
+            BoundingBox::default()
+        ));
+    }
 }
