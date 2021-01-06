@@ -11,7 +11,7 @@ impl Plugin for CollisionDetectionPlugin {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct BoundingBox{
     min: Vec3,
     max: Vec3,
@@ -201,10 +201,12 @@ fn collision_detection(
                 let other_entity = keys[j];
                 let (other_collidable, other_transform) = map.get_mut(&other_entity).unwrap();
                 let other_bb = other_collidable.bounding_box.transformed(&other_transform);
-                if intersects(&bb, &other_bb) {
+                let intersects = intersects(&bb, &other_bb);
+                if intersects {
                     // Mark it in the collidable
                     other_collidable.collides_with.push(*entity);
                 }
+                println!("Comparing boxes: {:?} and {:?} -> Collision: {}", bb, other_bb, intersects);
             }
         }
     }
