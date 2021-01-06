@@ -226,7 +226,7 @@ fn test_spawn_colliding_bodies(
 
     let mut transforms: Vec<Transform> = Vec::new();
     transforms.push(Transform::from_translation(Vec3::new(1.0, 1.0, 1.0)));
-    transforms.push(Transform::from_translation(Vec3::new(2.0, 2.0, 1.0)));
+    transforms.push(Transform::from_translation(Vec3::new(1.5, 1.5, 1.0)));
     transforms.push(Transform::from_translation(Vec3::new(4.0, 4.0, 4.0)));
     transforms.push(Transform::from_translation(Vec3::new(1.0, 3.0, 1.0)));
     transforms.push(Transform::from_translation(Vec3::new(3.0, 2.0, 1.0)));
