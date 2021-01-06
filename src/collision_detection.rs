@@ -123,6 +123,10 @@ impl Default for SpatialHash {
 
 impl SpatialHash {
 
+    fn is_empty(&self) -> bool {
+        self.hash.is_empty()
+    }
+
     fn clear(&mut self) {
         self.hash.clear();
     }
@@ -173,13 +177,15 @@ fn collision_detection(
 ) {
     // TODO do not rebuild the hash every iteration 
     spatial_hash.clear();
-    for (entity, collidable, transform) in query.iter_mut() {
+    for (entity, mut collidable, transform) in query.iter_mut() {
+        collidable.collides_with.clear();
         // Add entities to the Hash, maybe I can get rid of the clone?
         spatial_hash.insert(entity, collidable.clone(), transform.clone());
     }
-
+    assert!(!spatial_hash.is_empty());
     // For each cell
     for map in spatial_hash.hash.values_mut() {
+        assert!(!map.is_empty());
         // I think I need this copy to iterate over the entities with defined order
         let keys: Vec<Entity> = map.keys().map(|e| e.clone()).collect();
         let length = keys.len();
@@ -252,7 +258,17 @@ fn test_intersects_identical_boxes() {
 }
 
 #[test]
-fn test_intersects_separate_boxes() {
+fn test_intersects_separate_boxes_1() {
+    let box_1 = BoundingBox::default();
+    let box_2 = BoundingBox::new(
+        Vec3::splat(0.0),
+        Vec3::splat(1.0)
+    );
+    assert!(intersects(&box_1, &box_2))
+}
+
+#[test]
+fn test_intersects_separate_boxes_2() {
     let box_1 = BoundingBox::default();
     let box_2 = BoundingBox::new(
         Vec3::splat(3.0),
