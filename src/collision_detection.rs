@@ -175,6 +175,11 @@ fn collision_detection(
     // TODO I think I could reduce this to only entities whos transform has changed
     mut query: Query<(Entity, &mut Collidable, &Transform)>,
 ) {
+    // Currently I 
+    // * copy everything into the hash
+    // * do the work
+    // * Write everything pack to the ECS
+
     // TODO do not rebuild the hash every iteration 
     spatial_hash.clear();
     for (entity, mut collidable, transform) in query.iter_mut() {
@@ -206,7 +211,15 @@ fn collision_detection(
                     // Mark it in the collidable
                     other_collidable.collides_with.push(*entity);
                 }
-                println!("Comparing boxes: {:?} and {:?} -> Collision: {}", bb, other_bb, intersects);
+                // println!("Comparing boxes: {:?} and {:?} -> Collision: {}", bb, other_bb, intersects);
+            }
+        }
+        // Write collisions back. I'm not sure if I should use a HashSet<Entity> for collides_with, because right now entities can be in there multiple times
+        for (e, (local_collidable, _)) in map.iter() {
+            if let Ok(mut collidable) = query.get_component_mut::<Collidable>(*e) {
+                for colliding_entity in local_collidable.collides_with.iter() {
+                    collidable.collides_with.push(*colliding_entity);
+                }
             }
         }
     }
