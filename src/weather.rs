@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use rand::random;
 use rand::thread_rng;
 use rand_distr::{Distribution,Normal};
+use crate::collision_detection::{Collidable, BoundingBox};
    
-
 pub struct WeatherPlugin;
 impl Plugin for WeatherPlugin {
     fn build(&self, app: &mut AppBuilder) {
@@ -93,5 +93,12 @@ fn spawn_snowflake(
             transform: transform,
             ..Default::default()
         })
-        .with(SnowFlake);
+        .with(SnowFlake)
+        .with(Collidable::new(
+            BoundingBox::new(
+                Vec3::splat(-radius),
+                Vec3::splat(radius),
+            )
+        )
+    );
 }
