@@ -10,6 +10,8 @@ mod dynamics;
 use dynamics::*;
 mod thruster;
 use thruster::*;
+mod fps_indicator;
+use fps_indicator::*;
 
 fn setup(
     commands: &mut Commands,
@@ -55,6 +57,22 @@ fn main() {
         .add_plugin(WeatherPlugin)
         .add_plugin(DynamicsPlugin)
         .add_plugin(ThrusterPlugin)
+        .add_plugin(OnScreenFpsPlugin::new(OnScreenFpsConfig {
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(1.0),
+                    left: Val::Px(1.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            text_style: TextStyle {
+                font_size: 22.0,
+                ..Default::default()
+            },
+            ..Default::default()
+        }))
         .add_system(bevy::input::system::exit_on_esc_system.system())
         // Startup systems are called only one, at startup
         .add_startup_system(
