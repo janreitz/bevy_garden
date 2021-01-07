@@ -4,10 +4,16 @@ use std::collections::HashMap;
 pub struct CollisionDetectionPlugin;
 impl Plugin for CollisionDetectionPlugin {
     fn build(&self, app: &mut AppBuilder) {
+        // I keep the collision data in a spatial hash 
+        // to reduce the number of comparisons
         app.init_resource::<SpatialHash>()
+            .add_startup_system(test_spawn_colliding_bodies.system())
+            // * Copy collidable data into the spatial hash
+            .add_system(rebuild_spatial_hash.system())
+            // * Do the comparisons for each cell 
+            // * write back to the ECS
             .add_system(collision_detection.system())
-            .add_system(test_color_according_to_collision.system())
-            .add_startup_system(test_spawn_colliding_bodies.system());
+            .add_system(test_color_according_to_collision.system());
     }
 }
 
@@ -174,9 +180,9 @@ fn _update_spatial_hash(
     mut spatial_hash: ResMut<SpatialHash>,
     mut query: Query<(Entity, &mut Collidable, &Transform), Changed<Transform>>,
 ) {
-    // Try to update the hash without completely rebuilding
-    // I'm pretty sure the naive removal process makes this slower than the 
-    // Complete rebuild
+    // Try to update the hash to avoid rebuilding
+    // I'm pretty sure the naive removal process makes this slower than rebuilding
+    // Probably doesn't matter for now
     for (entity, mut collidable, transform) in query.iter_mut() {
         // Remove all occurences of entity from the mesh
         // How to do this smarter?
@@ -191,17 +197,10 @@ fn _update_spatial_hash(
     }
 }
 
-fn collision_detection(
+fn rebuild_spatial_hash(
     mut spatial_hash: ResMut<SpatialHash>,
-    // TODO I think I could reduce this to only entities whos transform has changed
     mut query: Query<(Entity, &mut Collidable, &Transform)>,
 ) {
-    // Currently I 
-    // * copy everything into the hash
-    // * do the work
-    // * Write everything pack to the ECS
-
-    // TODO do not rebuild the hash every iteration 
     spatial_hash.clear();
     for (entity, mut collidable, transform) in query.iter_mut() {
         collidable.collides_with.clear();
@@ -209,6 +208,13 @@ fn collision_detection(
         spatial_hash.insert(entity, collidable.clone(), transform.clone());
     }
     assert!(!spatial_hash.is_empty());
+}
+
+fn collision_detection(
+    mut spatial_hash: ResMut<SpatialHash>,
+    // TODO I think I could reduce this to only entities whos transform has changed
+    mut query: Query<(Entity, &mut Collidable, &Transform)>,
+) {
     // For each cell
     for map in spatial_hash.hash.values_mut() {
         assert!(!map.is_empty());
