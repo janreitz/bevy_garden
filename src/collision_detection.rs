@@ -170,6 +170,27 @@ impl Collidable {
     }
 }
 
+fn _update_spatial_hash(
+    mut spatial_hash: ResMut<SpatialHash>,
+    mut query: Query<(Entity, &mut Collidable, &Transform), Changed<Transform>>,
+) {
+    // Try to update the hash without completely rebuilding
+    // I'm pretty sure the naive removal process makes this slower than the 
+    // Complete rebuild
+    for (entity, mut collidable, transform) in query.iter_mut() {
+        // Remove all occurences of entity from the mesh
+        // How to do this smarter?
+        for (_, map) in spatial_hash.hash.iter_mut() {
+            map.remove(&entity);
+        }
+
+        // Past collision might not be relevant any more
+        collidable.collides_with.clear();
+
+        spatial_hash.insert(entity, collidable.clone(), transform.clone());
+    }
+}
+
 fn collision_detection(
     mut spatial_hash: ResMut<SpatialHash>,
     // TODO I think I could reduce this to only entities whos transform has changed
