@@ -29,7 +29,7 @@ impl Default for BoundingBox {
 }
 
 impl BoundingBox {
-    fn new(min: Vec3, max: Vec3) -> BoundingBox {
+    pub fn new(min: Vec3, max: Vec3) -> BoundingBox {
         BoundingBox {
             min,
             max,
@@ -37,16 +37,16 @@ impl BoundingBox {
         }
     }
 
-    fn transformed(&self, transform: &Transform) -> BoundingBox {
+    pub fn transformed(&self, transform: &Transform) -> BoundingBox {
         self.translated(&transform.translation).rotated(&transform.rotation)
         // Should I also scale the bounding box?
     }
     // Are these new allocations expensive?
-    fn translated(&self, translation: &Vec3) -> BoundingBox {
+    pub fn translated(&self, translation: &Vec3) -> BoundingBox {
         BoundingBox::new(self.min + *translation, self.max + *translation)
     }
 
-    fn rotated(&self, rotation: &Quat) -> BoundingBox {
+    pub fn rotated(&self, rotation: &Quat) -> BoundingBox {
         BoundingBox::new(rotation.mul_vec3(self.min), rotation.mul_vec3(self.max))
     }
 }
