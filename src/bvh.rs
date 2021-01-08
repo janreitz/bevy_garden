@@ -53,16 +53,18 @@ pub trait BVHPrimitive {
 }
 
 struct BVHNode<T: BVHPrimitive> {
-    data: T,
+    data: Option<T>,
+    bbox: AABB,
     left: Option<Box<BVHNode<T>>>,
     right: Option<Box<BVHNode<T>>>,
 }
 
 impl<T> BVHNode<T>
-where T: BVHPrimitive {
+where T: BVHPrimitive + Clone {
     fn new(data: T) -> BVHNode<T> {
         BVHNode {
-            data,
+            data: Some(data.clone()),
+            bbox: data.get_bounding_box(),
             left: None,
             right: None,
         }
@@ -77,7 +79,10 @@ where T: BVHPrimitive {
                 let a = primitives.pop().unwrap();
                 let b = primitives.pop().unwrap();
                 Some(BVHNode{
-                    data: AABB::combine(a, b)
+                    data: None,
+                    bbox: AABB::combine(&a.get_bounding_box(), &b.get_bounding_box(),),
+                    left: Some(Box::new(BVHNode::new(a))),
+                    right: Some(Box::new(BVHNode::new(b))),
                 }) 
             }
             _ => { return None }
