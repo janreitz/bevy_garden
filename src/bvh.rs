@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AABB {
     min: Vec3,
     max: Vec3,
@@ -85,12 +85,29 @@ where T: BVHPrimitive + Clone {
                     right: Some(Box::new(BVHNode::new(b))),
                 }) 
             }
-            _ => { return None }
+            _ => { 
+                let split_idx = split_heuristic(&primitives);
+                // TODO I should get rid of those copies
+                let mut data_left = Vec::new();
+                data_left.extend_from_slice(&primitives[..split_idx]);
+                let left = BVHNode::create(data_left).unwrap();
+
+                let mut data_right = Vec::new();
+                data_right.extend_from_slice(&primitives[split_idx..]);
+                let right = BVHNode::create(data_right).unwrap();
+
+                Some(BVHNode{
+                    data: None,
+                    bbox: AABB::combine(&left.bbox, &right.bbox),
+                    left: Some(Box::new(left)),
+                    right: Some(Box::new(right))
+                })
+             }
         }
     }
 }
 
-fn split_heuristic<T>(primitives: Vec<T>) -> usize {
+fn split_heuristic<T: BVHPrimitive>(primitives: &Vec<T>) -> usize {
     0
 }
 
