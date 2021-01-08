@@ -14,6 +14,7 @@ mod fps_indicator;
 use fps_indicator::*;
 mod collision_detection;
 use collision_detection::*;
+mod bvh;
 
 fn setup(
     commands: &mut Commands,
