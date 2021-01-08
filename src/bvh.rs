@@ -102,6 +102,7 @@ where T: BVHPrimitive + Clone {
     }
 }
 
+// Returns the first index thats part of the second section
 fn split_heuristic<T: BVHPrimitive>(primitives: &Vec<T>) -> usize {
     0
 }
