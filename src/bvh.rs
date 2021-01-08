@@ -71,30 +71,25 @@ where T: BVHPrimitive + Clone {
     }
     pub fn create(mut primitives: Vec<T>) -> Option<BVHNode<T>> {
         match primitives.len() {
-            0 => { return None }
+            0 => { 
+                // This should not happen
+                None 
+            }
             1 => { 
+                // Become Leaf node
                 Some(BVHNode::new(primitives.pop().unwrap())) 
             }
-            2 => { 
-                let a = primitives.pop().unwrap();
-                let b = primitives.pop().unwrap();
-                Some(BVHNode{
-                    data: None,
-                    bbox: AABB::combine(&a.get_bounding_box(), &b.get_bounding_box(),),
-                    left: Some(Box::new(BVHNode::new(a))),
-                    right: Some(Box::new(BVHNode::new(b))),
-                }) 
-            }
             _ => { 
+                // Defer to children and set their combined BoundingBox as yours
                 let split_idx = split_heuristic(&primitives);
                 // TODO I should get rid of those copies
-                let mut data_left = Vec::new();
-                data_left.extend_from_slice(&primitives[..split_idx]);
-                let left = BVHNode::create(data_left).unwrap();
+                let mut left_section = Vec::new();
+                left_section.extend_from_slice(&primitives[..split_idx]);
+                let left = BVHNode::create(left_section).unwrap();
 
-                let mut data_right = Vec::new();
-                data_right.extend_from_slice(&primitives[split_idx..]);
-                let right = BVHNode::create(data_right).unwrap();
+                let mut right_section = Vec::new();
+                right_section.extend_from_slice(&primitives[split_idx..]);
+                let right = BVHNode::create(right_section).unwrap();
 
                 Some(BVHNode{
                     data: None,
