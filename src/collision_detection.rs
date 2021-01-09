@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
-use crate::bvh::BVH;
+use crate::bvh::BVHNode;
 
 pub struct CollisionDetectionPlugin;
 impl Plugin for CollisionDetectionPlugin {
