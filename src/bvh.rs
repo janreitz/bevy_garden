@@ -95,6 +95,16 @@ where T: Clone {
         }
     }
 
+    fn is_leaf(&self) -> bool {
+        if self.left.is_none() && self.right.is_none() {
+            assert!(self.data.is_some());
+            return true;
+        } else {
+            assert!(self.data.is_none());
+            return false;
+        }
+    }
+
     pub fn get_closest(&self, position: &Vec3) -> Option<(T, AABB)> {
         // closest geometric distance to bounding box surface
         // If position is within 2 bounding boxes, the element with 
