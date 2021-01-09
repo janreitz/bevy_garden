@@ -24,6 +24,7 @@ impl AABB {
     }
 }
 
+#[derive(Debug)]
 struct BVHNode<T: Clone> {
     data: Option<T>,
     bbox: AABB,
@@ -67,6 +68,14 @@ where T: Clone {
                 })
              }
         }
+    }
+
+    pub fn get_n_closest(&self, n: i32) -> Option<Vec<T>> {
+        None
+    }
+    
+    pub fn get_in_radius (&self, radius: f32) -> Option<Vec<T>> {
+        None
     }
 }
 
