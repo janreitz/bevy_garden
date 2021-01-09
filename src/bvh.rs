@@ -94,11 +94,51 @@ where T: Clone {
         }
     }
 
-    pub fn get_n_closest(&self, n: i32) -> Option<Vec<T>> {
+    pub fn get_closest(&self, position: &Vec3) -> Option<(T, AABB)> {
+        // closest geometric distance to bounding box surface
+        // If position is within 2 bounding boxes, the element with 
+        // "further in" will be returned
+        if !self.bbox.contains(&position){
+            return None;
+        }
+
+        let mut left_contains = false;
+        if let Some(left) = &self.left {
+            left_contains = left.bbox.contains(&position);
+        }
+        let mut right_contains = false;
+        if let Some(right) = &self.right {
+            right_contains = right.bbox.contains(&position);
+        }
+
+        if left_contains && right_contains {
+            let left_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
+            let right_closest = self.right.as_ref().unwrap().get_closest(position).unwrap();
+
+            let left_dist = left_closest.1.distance(position);
+            let right_dist = right_closest.1.distance(position);
+            if left_dist < right_dist { 
+                return Some(left_closest);
+            }
+            else {
+                return Some(right_closest);
+            }
+        } else if left_contains {
+            return self.left.as_ref().unwrap().get_closest(position);
+        } else if right_contains {
+            return self.right.as_ref().unwrap().get_closest(position);
+        } else {
+            // I must be a leaf
+            assert!(self.data.is_some());
+            Some((self.data.as_ref().unwrap().clone(), self.bbox.clone()))
+        }
+    }
+
+    pub fn get_n_closest(&self, position: &Vec3, n: i32) -> Option<Vec<T>> {
         None
     }
 
-    pub fn get_in_radius (&self, radius: f32) -> Option<Vec<T>> {
+    pub fn get_in_radius (&self, position: &Vec3, radius: f32) -> Option<Vec<T>> {
         None
     }
 }
