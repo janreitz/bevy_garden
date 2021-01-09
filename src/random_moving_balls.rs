@@ -53,7 +53,7 @@ fn move_balls(
     let dt = time.delta_seconds();
     let offset = Vec3::splat(-0.5);
     for mut transform in query.iter_mut() {
-        transform.translation += (random_vec3() + offset)  * dt;
+        transform.translation += (random_vec3() + offset)  * dt * 5.0;
     }
 }
 
