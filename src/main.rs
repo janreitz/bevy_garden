@@ -25,12 +25,12 @@ fn setup(
 ) {
     commands
         // Plane
-        .spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane {size: 8.0})),
-            material: materials.add(Color::rgb(1.0, 0.9, 0.9).into()),
-            transform: Transform::from_translation(Vec3::new(4.0,0.0,4.0)),
-            ..Default::default()
-        })
+        // .spawn(PbrBundle {
+        //     mesh: meshes.add(Mesh::from(shape::Plane {size: 8.0})),
+        //     material: materials.add(Color::rgb(1.0, 0.9, 0.9).into()),
+        //     transform: Transform::from_translation(Vec3::new(4.0,0.0,4.0)),
+        //     ..Default::default()
+        // })
         // Light
         .spawn(LightBundle {
             transform: Transform::from_translation(Vec3::new(4.0, 8.0,4.0)),
