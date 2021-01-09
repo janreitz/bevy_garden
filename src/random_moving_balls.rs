@@ -40,7 +40,7 @@ fn spawn_balls(
 
     for _ in 0..num_balls {
         let position = random_vec3() * 8.0;
-        spawn_ball(commands, mesh_handle.clone(), material_handle.clone(), position, 5.0);
+        spawn_ball(commands, mesh_handle.clone(), material_handle.clone(), position, 0.25);
     }
     // The last spawned ball get this label attached
     commands.with(FocusBall);
@@ -51,39 +51,42 @@ fn move_balls(
     mut query: Query<&mut Transform, With<RandomMovingBall>>
 ) {
     let dt = time.delta_seconds();
+    let offset = Vec3::splat(-0.5);
     for mut transform in query.iter_mut() {
-        transform.translation += random_vec3() * dt;
+        transform.translation += (random_vec3() + offset)  * dt;
     }
 }
 
 fn test_color_balls_bvs(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query_set: QuerySet<(
-        Query<(Entity, &Transform, &mut Handle<StandardMaterial>), With<RandomMovingBall>>,
-        Query<(Entity, &Transform, &mut Handle<StandardMaterial>), With<(RandomMovingBall, FocusBall)>>,
+        Query<(Entity, &Transform, &mut Handle<StandardMaterial>), (With<RandomMovingBall>, Without<FocusBall>)>,
+        Query<(&Transform, &mut Handle<StandardMaterial>), With<FocusBall>>,
     )>
 
 ) {
     let green_handle = materials.add(Color::GREEN.into());
     let red_handle = materials.add(Color::RED.into());
+    let neutral_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
 
     // initialize bvh
     let bbox = AABB::new(Vec3::splat(-2.5), Vec3::splat(2.5));
     let mut data_and_boxes: Vec<(Entity, AABB)> = Vec::new();
-    for (e, transform, _) in query_set.q0_mut().iter_mut() {
+    for (e, transform, mut material) in query_set.q0_mut().iter_mut() {
         data_and_boxes.push((e, bbox.translated(&transform.translation)));
+        *material = neutral_handle.clone();
     }
     let root = BVHNode::create(data_and_boxes).unwrap();
 
     let mut focus_ball_position = Vec3::zero();
-    for (e, transform, mut material) in query_set.q1_mut().iter_mut() {
+    for (transform, mut material) in query_set.q1_mut().iter_mut() {
         focus_ball_position = transform.translation.clone();
         *material = green_handle.clone();
     }
     
     if let Some(closest_entity) = root.get_closest(&focus_ball_position){
         let mut material = query_set.q0_mut().get_component_mut::<Handle<StandardMaterial>>(closest_entity.0).unwrap();    
-        *material = red_handle;
+        *material = red_handle.clone();
     } else {
         println!("No closest entity found");
     }
