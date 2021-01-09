@@ -33,6 +33,19 @@ impl AABB {
         if max != self.max { return false; }
         else { return true; }
     }
+
+
+    fn distance(&self, point: &Vec3) -> f32 {
+        // Returns negative values if point is within bounding box
+        let d_x = (self.min.x - point.x).abs().min((point.x - self.max.x).abs());
+        let d_y = (self.min.y - point.y).abs().min((point.y - self.max.y).abs());
+        let d_z = (self.min.z - point.z).abs().min((point.z - self.max.z).abs());
+        let distance =  (d_x.powi(2) + d_y.powi(2) + d_z.powi(2)).sqrt();
+        if self.contains(point) { 
+            return -distance; 
+        }
+        distance
+    }
 }
 
 #[derive(Debug)]
