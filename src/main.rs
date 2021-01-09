@@ -4,16 +4,16 @@ mod pan_orbit_camera;
 use pan_orbit_camera::*;
 mod tree;
 use tree::*;
-mod weather;
-use weather::*;
+// mod weather;
+// use weather::*;
 mod dynamics;
 use dynamics::*;
 mod thruster;
 use thruster::*;
 mod fps_indicator;
 use fps_indicator::*;
-mod collision_detection;
-use collision_detection::*;
+// mod collision_detection;
+// use collision_detection::*;
 mod random_moving_balls;
 use random_moving_balls::*;
 mod bvh;
@@ -59,7 +59,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugin(PanOrbitCameraPlugin)
         .add_plugin(TreePlugin)
-        .add_plugin(WeatherPlugin)
+        //.add_plugin(WeatherPlugin)
         .add_plugin(DynamicsPlugin)
         .add_plugin(ThrusterPlugin)
         .add_plugin(RandomMovingBallsPlugin)
