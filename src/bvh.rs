@@ -24,25 +24,7 @@ impl AABB {
     }
 }
 
-impl BVHPrimitive for AABB {
-    fn get_bounding_box(&self) -> AABB {
-        *self
-    }
-}
-
-#[test]
-fn test_aabb_combine() {
-    let a = AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(3.0,3.0,3.0));
-    let b = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(2.0,2.0,2.0));
-    let c = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(3.0,3.0,3.0));
-    assert_eq!(AABB::combine(&a, &b), c);
-}
-
-pub trait BVHPrimitive {
-    fn get_bounding_box(&self) -> AABB;
-}
-
-struct BVHNode<T: BVHPrimitive> {
+struct BVHNode<T: Clone> {
     data: Option<T>,
     bbox: AABB,
     left: Option<Box<BVHNode<T>>>,
@@ -50,36 +32,32 @@ struct BVHNode<T: BVHPrimitive> {
 }
 
 impl<T> BVHNode<T>
-where T: BVHPrimitive + Clone {
-    fn new(data: T) -> BVHNode<T> {
+where T: Clone {
+    fn new(data: T, bbox: AABB) -> BVHNode<T> {
         BVHNode {
-            data: Some(data.clone()),
-            bbox: data.get_bounding_box(),
+            data: Some(data),
+            bbox: bbox,
             left: None,
             right: None,
         }
     }
-    pub fn create(mut primitives: Vec<T>) -> Option<BVHNode<T>> {
-        match primitives.len() {
+    pub fn create(mut data_and_boxes: Vec<(T, AABB)>) -> Option<BVHNode<T>> {
+        match data_and_boxes.len() {
             0 => { 
                 // This should not happen
                 None 
             }
             1 => { 
                 // Become Leaf node
-                Some(BVHNode::new(primitives.pop().unwrap())) 
+                let data_and_box = data_and_boxes.pop().unwrap();
+                Some(BVHNode::new(data_and_box.0, data_and_box.1)) 
             }
             _ => { 
                 // Defer to children and set their combined BoundingBox as yours
-                let split_idx = split_heuristic(&primitives);
+                let partitions = split_heuristic(data_and_boxes);
                 // TODO I should get rid of those copies
-                let mut left_section = Vec::new();
-                left_section.extend_from_slice(&primitives[..split_idx]);
-                let left = BVHNode::create(left_section).unwrap();
-
-                let mut right_section = Vec::new();
-                right_section.extend_from_slice(&primitives[split_idx..]);
-                let right = BVHNode::create(right_section).unwrap();
+                let left = BVHNode::create(partitions.0).unwrap();
+                let right = BVHNode::create(partitions.1).unwrap();
 
                 Some(BVHNode{
                     data: None,
@@ -93,45 +71,70 @@ where T: BVHPrimitive + Clone {
 }
 
 // Returns the first index thats part of the second section
-fn split_heuristic<T: BVHPrimitive>(primitives: &Vec<T>) -> usize {
-    0
-}
+fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>) 
+    -> (Vec<(T, AABB)>, Vec<(T, AABB)>) 
+{
+    assert!(data_and_boxes.len() > 1);
+    // Split in the geometric middle of the axis with largest spread
 
-pub struct BVH<T: BVHPrimitive> {
-    beppo: Vec<T>
-}
+    let outer_box = data_and_boxes.iter().fold(
+        data_and_boxes.get(0).unwrap().1, 
+        |outer, current| {
+        AABB::combine(&outer, &current.1)
+    });
+    // Find partition Axis (x, y or z)
+    // Choose the one, where the outer centers have the largest distance 
+    let outer_box_dimensions: Vec3 = outer_box.max - outer_box.min;
 
-impl<T> BVH<T> 
-where T: BVHPrimitive {
-    pub fn new() -> BVH<T> {
-        BVH{
-            beppo: Vec::new()
+    let mut before_split = Vec::new();
+    let mut after_split = Vec::new();
+
+    let max = outer_box_dimensions.max_element();
+    if outer_box_dimensions.x == max { 
+        let center = outer_box.min.x + (outer_box_dimensions/2.0).x;
+        data_and_boxes.sort_by(|a, b| { a.1.center.x.partial_cmp(&b.1.center.x).unwrap() });
+        for p in data_and_boxes.iter() {
+            if p.1.center.x <= center {
+                // TODO I should prevent the copies of data Members by 
+                before_split.push(p.clone());
+            } else {
+                after_split.push(p.clone());
+            }
+        }
+    }
+    if outer_box_dimensions.y == max { 
+        let center = outer_box.min.y + (outer_box_dimensions/2.0).y;
+        data_and_boxes.sort_by(|a, b| { a.1.center.y.partial_cmp(&b.1.center.y).unwrap() });
+        for p in data_and_boxes.iter() {
+            if p.1.center.y <= center {
+                // TODO I should prevent the copies of data Members by 
+                before_split.push(p.clone());
+            } else {
+                after_split.push(p.clone());
+            }
+        }
+    }
+    else { 
+        let center = outer_box.min.z + (outer_box_dimensions/2.0).z;
+        data_and_boxes.sort_by(|a, b| { a.1.center.z.partial_cmp(&b.1.center.z).unwrap() });
+        for p in data_and_boxes.iter() {
+            if p.1.center.z <= center {
+                // TODO I should prevent the copies of data Members by 
+                before_split.push(p.clone());
+            } else {
+                after_split.push(p.clone());
+            }
         }
     }
 
-    pub fn from_primitives(primitives: &Vec<T>) -> BVH<T> {
-        let mut bbs = Vec::new();
-        for p in primitives.iter() {
-            bbs.push(p.get_bounding_box());
-        }
-
-        let length = bbs.len();
-        let a = bbs.len() / 2;
-
-        bbs.sort_by(|a, b| {
-            a.center.x.partial_cmp(&b.center.x).unwrap() 
-        });
+    (before_split, after_split)
+}
 
 
-
-        bbs.sort_by(|a, b| {
-            a.center.y.partial_cmp(&b.center.y).unwrap() 
-        });
-        bbs.sort_by(|a, b| {
-            a.center.z.partial_cmp(&b.center.z).unwrap() 
-        });
-
-        
-        BVH::new()
-    }
+#[test]
+fn test_aabb_combine() {
+    let a = AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(3.0,3.0,3.0));
+    let b = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(2.0,2.0,2.0));
+    let c = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(3.0,3.0,3.0));
+    assert_eq!(AABB::combine(&a, &b), c);
 }
