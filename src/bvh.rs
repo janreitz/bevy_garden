@@ -171,14 +171,19 @@ fn test_bvh_create() {
     assert!(root.is_some());
 }
 
-// #[test]
-// fn test_get_closest() {
-//     let data_and_boxes = test_construct_linear_boxes(5);
-//     let root = BVHNode::create(data_and_boxes);
-//     assert!(root.is_some());
-
-//     assert!()
-// }
+#[test]
+fn test_get_closest() {
+    let data_and_boxes = test_construct_linear_boxes(5);
+    let root_opt = BVHNode::create(data_and_boxes);
+    assert!(root_opt.is_some());
+    let root = root_opt.unwrap();
+    let closest_0 = root.get_closest(&Vec3::splat(0.5));
+    assert!(closest_0.is_some());
+    assert_eq!(closest_0.unwrap().0, 0);
+    let closest_1 = root.get_closest(&Vec3::splat(1.5));
+    assert!(closest_1.is_some());
+    assert_eq!(closest_1.unwrap().0, 1);
+}
 
 // Returns the first index thats part of the second section
 fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>) 
