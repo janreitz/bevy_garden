@@ -48,6 +48,10 @@ impl AABB {
         }
         distance
     }
+    
+    pub fn translated(&self, translation: &Vec3) -> AABB {
+        AABB::new(self.min + *translation, self.max + *translation)
+    }
 }
 
 #[derive(Debug)]
