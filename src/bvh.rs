@@ -16,7 +16,7 @@ impl AABB {
         }
     }
 
-    fn combine(a: &AABB, b: &AABB) -> AABB {
+    fn outer(a: &AABB, b: &AABB) -> AABB {
         AABB::new(
             a.min.min(b.min),
             a.max.max(b.max),
@@ -61,7 +61,7 @@ where T: Clone {
 
                 Some(BVHNode{
                     data: None,
-                    bbox: AABB::combine(&left.bbox, &right.bbox),
+                    bbox: AABB::outer(&left.bbox, &right.bbox),
                     left: Some(Box::new(left)),
                     right: Some(Box::new(right))
                 })
@@ -80,7 +80,7 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
     let outer_box = data_and_boxes.iter().fold(
         data_and_boxes.get(0).unwrap().1, 
         |outer, current| {
-        AABB::combine(&outer, &current.1)
+        AABB::outer(&outer, &current.1)
     });
     // Find partition Axis (x, y or z)
     // Choose the one, where the outer centers have the largest distance 
@@ -136,5 +136,5 @@ fn test_aabb_combine() {
     let a = AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(3.0,3.0,3.0));
     let b = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(2.0,2.0,2.0));
     let c = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(3.0,3.0,3.0));
-    assert_eq!(AABB::combine(&a, &b), c);
+    assert_eq!(AABB::outer(&a, &b), c);
 }
