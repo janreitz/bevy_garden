@@ -123,7 +123,7 @@ where T: Clone {
         if let Some(right) = &self.right {
             right_contains = right.bbox.contains(&position);
         }
-        
+
         if left_contains && !right_contains{
             return self.left.as_ref().unwrap().get_closest(position);
         } 
@@ -177,12 +177,18 @@ fn test_get_closest() {
     let root_opt = BVHNode::create(data_and_boxes);
     assert!(root_opt.is_some());
     let root = root_opt.unwrap();
+    // on the border
     let closest_0 = root.get_closest(&Vec3::splat(0.5));
     assert!(closest_0.is_some());
     assert_eq!(closest_0.unwrap().0, 0);
+    // in the middle
     let closest_1 = root.get_closest(&Vec3::splat(1.5));
     assert!(closest_1.is_some());
     assert_eq!(closest_1.unwrap().0, 1);
+    // outside
+    let closest_4 = root.get_closest(&Vec3::splat(20.0));
+    assert!(closest_4.is_some());
+    assert_eq!(closest_4.unwrap().0, 4);
 }
 
 // Returns the first index thats part of the second section
