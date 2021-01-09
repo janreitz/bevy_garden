@@ -14,6 +14,8 @@ mod fps_indicator;
 use fps_indicator::*;
 mod collision_detection;
 use collision_detection::*;
+mod random_moving_balls;
+use random_moving_balls::*;
 mod bvh;
 
 fn setup(
@@ -60,7 +62,7 @@ fn main() {
         .add_plugin(WeatherPlugin)
         .add_plugin(DynamicsPlugin)
         .add_plugin(ThrusterPlugin)
-        .add_plugin(CollisionDetectionPlugin)
+        .add_plugin(RandomMovingBallsPlugin)
         .add_plugin(OnScreenFpsPlugin::new(OnScreenFpsConfig {
             style: Style {
                 position_type: PositionType::Absolute,
