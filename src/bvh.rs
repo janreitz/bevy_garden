@@ -109,10 +109,10 @@ where T: Clone {
 
     pub fn get_closest(&self, position: &Vec3) -> Option<(T, AABB)> {
         // closest geometric distance to bounding box surface
-        // If position is within 2 bounding boxes, the element with 
+        // If position is within 2 bounding boxes, the element
         // "further in" will be returned
-        if !self.bbox.contains(&position){
-            return None;
+        if self.is_leaf() {
+            return Some((self.data.as_ref().unwrap().clone(), self.bbox.clone()));
         }
 
         let mut left_contains = false;
@@ -123,8 +123,14 @@ where T: Clone {
         if let Some(right) = &self.right {
             right_contains = right.bbox.contains(&position);
         }
-
-        if left_contains && right_contains {
+        
+        if left_contains && !right_contains{
+            return self.left.as_ref().unwrap().get_closest(position);
+        } 
+        else if right_contains && !left_contains {
+            return self.right.as_ref().unwrap().get_closest(position);
+        }
+        else {
             let left_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
             let right_closest = self.right.as_ref().unwrap().get_closest(position).unwrap();
 
@@ -136,24 +142,16 @@ where T: Clone {
             else {
                 return Some(right_closest);
             }
-        } else if left_contains {
-            return self.left.as_ref().unwrap().get_closest(position);
-        } else if right_contains {
-            return self.right.as_ref().unwrap().get_closest(position);
-        } else {
-            // I must be a leaf
-            assert!(self.data.is_some());
-            Some((self.data.as_ref().unwrap().clone(), self.bbox.clone()))
-        }
+        } 
     }
 
-    pub fn get_n_closest(&self, position: &Vec3, n: i32) -> Option<Vec<T>> {
-        None
-    }
+    // pub fn get_n_closest(&self, position: &Vec3, n: i32) -> Option<Vec<T>> {
+    //     None
+    // }
 
-    pub fn get_in_radius (&self, position: &Vec3, radius: f32) -> Option<Vec<T>> {
-        None
-    }
+    // pub fn get_in_radius (&self, position: &Vec3, radius: f32) -> Option<Vec<T>> {
+    //     None
+    // }
 }
 
 fn test_construct_linear_boxes(n: i32) -> Vec<(i32, AABB)> {
