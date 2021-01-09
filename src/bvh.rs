@@ -22,10 +22,21 @@ impl AABB {
             a.max.max(b.max),
         )
     }
+
+    fn contains(&self, point: &Vec3) -> bool {
+        // check if elementwise min/max operations return
+        // self.min/max
+        let min = point.min(self.min);
+        if min != self.min { return false; }
+        
+        let max = point.max(self.max);
+        if max != self.max { return false; }
+        else { return true; }
+    }
 }
 
 #[derive(Debug)]
-struct BVHNode<T: Clone> {
+pub struct BVHNode<T: Clone> {
     data: Option<T>,
     bbox: AABB,
     left: Option<Box<BVHNode<T>>>,
@@ -73,7 +84,7 @@ where T: Clone {
     pub fn get_n_closest(&self, n: i32) -> Option<Vec<T>> {
         None
     }
-    
+
     pub fn get_in_radius (&self, radius: f32) -> Option<Vec<T>> {
         None
     }
@@ -145,4 +156,10 @@ fn test_aabb_combine() {
     let b = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(2.0,2.0,2.0));
     let c = AABB::new(Vec3::new(-1.0, -1.0, -1.0), Vec3::new(3.0,3.0,3.0));
     assert_eq!(AABB::outer(&a, &b), c);
+}
+#[test]
+fn test_aabb_contains() {
+    let a = AABB::new(Vec3::new(1.0, 1.0, 1.0), Vec3::new(3.0,3.0,3.0));
+    assert!(a.contains(&Vec3::splat(2.0)));
+    assert!(!a.contains(&Vec3::splat(4.0)));
 }
