@@ -70,6 +70,7 @@ where T: Clone {
         match data_and_boxes.len() {
             0 => { 
                 // This should not happen
+                assert!(false);
                 None 
             }
             1 => { 
@@ -143,6 +144,32 @@ where T: Clone {
     }
 }
 
+fn test_construct_linear_boxes(n: i32) -> Vec<(i32, AABB)> {
+    let mut data_and_boxes = Vec::new();
+    for i in 0..n {
+        data_and_boxes.push((i, AABB::new(
+            Vec3::splat(i as f32 * 2.0), 
+            Vec3::splat(i as f32 * 2.0 + 1.0 ))));
+    }
+    data_and_boxes
+}
+
+#[test]
+fn test_bvh_create() {
+    let data_and_boxes = test_construct_linear_boxes(5);
+    let root = BVHNode::create(data_and_boxes);
+    assert!(root.is_some());
+}
+
+// #[test]
+// fn test_get_closest() {
+//     let data_and_boxes = test_construct_linear_boxes(5);
+//     let root = BVHNode::create(data_and_boxes);
+//     assert!(root.is_some());
+
+//     assert!()
+// }
+
 // Returns the first index thats part of the second section
 fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>) 
     -> (Vec<(T, AABB)>, Vec<(T, AABB)>) 
@@ -199,6 +226,7 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
         }
     }
 
+    assert_eq!(before_split.len() + after_split.len(), data_and_boxes.len());
     (before_split, after_split)
 }
 
