@@ -1,3 +1,5 @@
+use std::assert_eq;
+
 use bevy::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -71,12 +73,12 @@ where T: Clone {
             0 => { 
                 // This should not happen
                 assert!(false);
-                None 
+                return None;
             }
             1 => { 
                 // Become Leaf node
                 let data_and_box = data_and_boxes.pop().unwrap();
-                Some(BVHNode::new(data_and_box.0, data_and_box.1)) 
+                return Some(BVHNode::new(data_and_box.0, data_and_box.1));
             }
             _ => { 
                 // Defer to children and set their combined BoundingBox as yours
@@ -85,12 +87,12 @@ where T: Clone {
                 let left = BVHNode::create(partitions.0).unwrap();
                 let right = BVHNode::create(partitions.1).unwrap();
 
-                Some(BVHNode{
+                return Some(BVHNode{
                     data: None,
                     bbox: AABB::outer(&left.bbox, &right.bbox),
                     left: Some(Box::new(left)),
                     right: Some(Box::new(right))
-                })
+                });
              }
         }
     }
