@@ -201,7 +201,7 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
             }
         }
     }
-    if outer_box_dimensions.y == max_dimension { 
+    else if outer_box_dimensions.y == max_dimension { 
         let center = outer_box.min.y + (outer_box_dimensions/2.0).y;
         data_and_boxes.sort_by(|a, b| { a.1.center.y.partial_cmp(&b.1.center.y).unwrap() });
         for p in data_and_boxes.iter() {
