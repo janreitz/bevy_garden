@@ -18,8 +18,8 @@ impl AABB {
 
     fn combine(a: &AABB, b: &AABB) -> AABB {
         AABB::new(
-            a.min.min(b),
-            a.max.max(b),
+            a.min.min(b.min),
+            a.max.max(b.max),
         )
     }
 }
