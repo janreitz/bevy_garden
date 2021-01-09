@@ -17,19 +17,9 @@ impl AABB {
     }
 
     fn combine(a: &AABB, b: &AABB) -> AABB {
-        let min = Vec3 {
-            x: if a.min.x < b.min.x { a.min.x } else { b.min.x },
-            y: if a.min.y < b.min.y { a.min.y } else { b.min.y },
-            z: if a.min.z < b.min.z { a.min.z } else { b.min.z },
-        };
-        let max = Vec3 {
-            x: if a.max.x > b.max.x { a.max.x } else { b.max.x },
-            y: if a.max.y > b.max.y { a.max.y } else { b.max.y },
-            z: if a.max.z > b.max.z { a.max.z } else { b.max.z },
-        };
         AABB::new(
-            min,
-            max,
+            a.min.min(b),
+            a.max.max(b),
         )
     }
 }
