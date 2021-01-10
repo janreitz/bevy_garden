@@ -173,10 +173,14 @@ where T: Clone {
         }
         let mut return_data = Vec::new();
         if let Some(left) = &self.left {
-            return_data.append(&mut left.get_in_radius(position, radius).unwrap());
+            if let Some(mut data) = left.get_in_radius(position, radius) {
+                return_data.append(&mut data);
+            }
         }
         if let Some(right) = &self.right {
-            return_data.append(&mut right.get_in_radius(position, radius).unwrap());
+            if let Some(mut data) = right.get_in_radius(position, radius) {
+                return_data.append(&mut data);
+            }
         }
         Some(return_data)
     }
