@@ -17,6 +17,7 @@ use fps_indicator::*;
 mod random_moving_balls;
 use random_moving_balls::*;
 mod bvh;
+mod utils;
 
 fn setup(
     commands: &mut Commands,

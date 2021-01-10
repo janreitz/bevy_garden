@@ -11,6 +11,7 @@ use bevy::{
 };
 use rand::random;
 use crate::bvh::{BVHNode, AABB};
+use crate::utils::random_vec3;
 
 pub struct RandomMovingBallsPlugin;
 impl Plugin for RandomMovingBallsPlugin {
@@ -157,10 +158,6 @@ fn test_color_balls_bvs(
     } else {
         println!("No closest entity found");
     }
-}
-
-fn random_vec3() -> Vec3 {
-    Vec3::new(random::<f32>(), random::<f32>(), random::<f32>())
 }
 
 // Transparent Material
