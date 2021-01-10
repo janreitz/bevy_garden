@@ -41,6 +41,8 @@ fn update_boids(
 
             }
 
+            let alignment = alignment(&transform, &neighbors);
+            transform.rotate(alignment);
             let cohesion = cohesion(&transform, &neighbors);
             transform.rotate(cohesion);
 
@@ -56,7 +58,15 @@ fn separation(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
 }
 // Look in the same direction as neighbors, Average of neighbors rotations
 fn alignment(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
-    Quat::default()
+    let mut sum_heading = Vec3::zero();
+    for neighbor in neighbors.iter() {
+        sum_heading += neighbor.forward();
+    }
+    let avg_heading = sum_heading / neighbors.len() as f32;
+    // Look towards avg_heading
+    let heading = boid_t.forward();
+    let rotation = heading.cross(avg_heading);
+    Quat::from_axis_angle(rotation, rotation.length() * 0.1)
 }
 // Steer towards the geometric middle of the neighbors
 fn cohesion(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
