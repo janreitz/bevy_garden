@@ -36,53 +36,37 @@ fn update_boids(
     // iterate over mutable query and update transforms
     for mut transform in query.iter_mut() {
         if let Some(neighbors) = root.get_in_radius(&transform.translation, vision_radius) {
-            // rotate the boid somehow
+            let mut sum_heading = Vec3::zero();
+            let mut sum_position = Vec3::zero();
             for neighbor in neighbors.iter() {
-
+                sum_heading += neighbor.forward();
+                sum_position += neighbor.translation;
             }
-
-            let alignment = alignment(&transform, &neighbors);
+            
+            let avg_position = sum_position / neighbors.len() as f32;
+            let avg_heading = sum_heading / neighbors.len() as f32;
+            // Separation
+            // Steer away from the closest neighbor
+            
+            // Alignment
+            // Look towards the same direction as neighbors
+            let heading = transform.forward();
+            let rotation = heading.cross(avg_heading);
+            let alignment = Quat::from_axis_angle(rotation, rotation.length() * 0.1);
             transform.rotate(alignment);
-            let cohesion = cohesion(&transform, &neighbors);
+            
+            // Cohesion
+            // Steer toward position_avg
+            let heading = transform.forward();
+            let position = transform.translation;
+            let rotation = heading.cross(avg_position - position);
+            let cohesion = Quat::from_axis_angle(rotation, rotation.length() * 0.1);
             transform.rotate(cohesion);
 
             let forward = transform.forward();
             transform.translation += forward * time.delta_seconds();
         }
     }
-}
-
-// Steer away from the closest neighbor
-fn separation(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
-    Quat::default()
-}
-// Look in the same direction as neighbors, Average of neighbors rotations
-fn alignment(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
-    let mut sum_heading = Vec3::zero();
-    for neighbor in neighbors.iter() {
-        sum_heading += neighbor.forward();
-    }
-    let avg_heading = sum_heading / neighbors.len() as f32;
-    // Look towards avg_heading
-    let heading = boid_t.forward();
-    let rotation = heading.cross(avg_heading);
-    Quat::from_axis_angle(rotation, rotation.length() * 0.1)
-}
-// Steer towards the geometric middle of the neighbors
-fn cohesion(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
-    // Geometric center of neighbors
-    let mut position_sum = Vec3::zero();
-    for neighbor in neighbors.iter() {
-        position_sum += neighbor.translation;
-    }
-    let position_avg = position_sum / neighbors.len() as f32;
-
-    // Look toward position_avg
-    let heading = boid_t.forward();
-    let position = boid_t.translation;
-    let rotation = heading.cross(position_avg - position);
-
-    Quat::from_axis_angle(rotation, rotation.length() * 0.1)
 }
 
 fn spawn_boids(
