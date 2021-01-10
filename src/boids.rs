@@ -41,6 +41,9 @@ fn update_boids(
 
             }
 
+            let cohesion = cohesion(&transform, &neighbors);
+            transform.rotate(cohesion);
+
             let forward = transform.forward();
             transform.translation += forward * time.delta_seconds();
         }
@@ -48,15 +51,15 @@ fn update_boids(
 }
 
 // Steer away from the closest neighbor
-fn separation(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
-    Transform::default()
+fn separation(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
+    Quat::default()
 }
 // Look in the same direction as neighbors, Average of neighbors rotations
-fn alignment(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
-    Transform::default()
+fn alignment(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
+    Quat::default()
 }
 // Steer towards the geometric middle of the neighbors
-fn cohesion(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
+fn cohesion(boid_t: &Transform, neighbors: &Vec<Transform>) -> Quat {
     // Geometric center of neighbors
     let mut position_sum = Vec3::zero();
     for neighbor in neighbors.iter() {
@@ -65,8 +68,11 @@ fn cohesion(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
     let position_avg = position_sum / neighbors.len() as f32;
 
     // Look toward position_avg
+    let heading = boid_t.forward();
+    let position = boid_t.translation;
+    let rotation = heading.cross(position_avg - position);
 
-    Transform::default()
+    Quat::from_axis_angle(rotation, rotation.length() * 0.1)
 }
 
 fn spawn_boids(
