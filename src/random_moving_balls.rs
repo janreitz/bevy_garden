@@ -47,7 +47,7 @@ fn spawn_balls(
     mut pipelines: ResMut<Assets<PipelineDescriptor>>,
     asset_server: ResMut<AssetServer>,
 ) {
-    let num_balls = 40;
+    let num_balls = 80;
 
     let mesh_handle_box = meshes.add(
         Mesh::from(
