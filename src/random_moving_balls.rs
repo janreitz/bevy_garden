@@ -49,7 +49,12 @@ fn spawn_balls(
 ) {
     let num_balls = 40;
 
-    let mesh_handle = meshes.add(
+    let mesh_handle_box = meshes.add(
+        Mesh::from(
+            shape::Box::new(1.0, 1.0, 1.0) 
+        )
+    );
+    let mesh_handle_ball = meshes.add(
         Mesh::from(
             shape::Icosphere{
                 radius: 1.0, 
@@ -61,7 +66,7 @@ fn spawn_balls(
 
     for _ in 0..num_balls {
         let position = random_vec3() * 8.0;
-        spawn_ball(commands, mesh_handle.clone(), material_handle.clone(), position, 0.25);
+        spawn_ball(commands, mesh_handle_box.clone(), material_handle.clone(), position, 0.25);
     }
 
     // Create a new shader pipeline with shaders loaded from the asset directory
@@ -76,10 +81,9 @@ fn spawn_balls(
 
     commands
         .with(FocusBall)
-        .with_children(
-            |parent| {
+        .with_children( |parent| {
                 parent.spawn(MeshBundle {
-                    mesh: mesh_handle,
+                    mesh: mesh_handle_ball,
                     render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
                         pipeline_handle,
                     )]),
@@ -180,21 +184,11 @@ struct MyMaterial {
 }
 
 fn setup_transparent_material(
-    commands: &mut Commands,
     asset_server: ResMut<AssetServer>,
-    mut pipelines: ResMut<Assets<PipelineDescriptor>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<MyMaterial>>,
     mut render_graph: ResMut<RenderGraph>,
 ) {
     // Watch for changes
     asset_server.watch_for_changes().unwrap();
-
-    // Create a new shader pipeline with shaders loaded from the asset directory
-    let pipeline_handle = pipelines.add(PipelineDescriptor::default_config(ShaderStages {
-        vertex: asset_server.load::<Shader, _>("shaders/hot.vert"),
-        fragment: Some(asset_server.load::<Shader, _>("shaders/hot.frag")),
-    }));
 
     // Add an AssetRenderResourcesNode to our Render Graph. This will bind MyMaterial resources to our shader
     render_graph.add_system_node(
