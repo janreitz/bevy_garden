@@ -7,5 +7,5 @@ layout(set = 2, binding = 0) uniform MyMaterial_color {
 };
 
 void main() {
-    o_Target = color * 0.80;
+    o_Target = color * 0.20;
 }
