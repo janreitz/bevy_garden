@@ -137,31 +137,55 @@ where T: Clone {
         let mut left_contains = false;
         if let Some(left) = &self.left {
             left_contains = left.bbox.contains(&position);
+        } else {
+            // Only right is some
+            return self.right.as_ref().unwrap().get_closest(position);
         }
         let mut right_contains = false;
         if let Some(right) = &self.right {
             right_contains = right.bbox.contains(&position);
-        }
-
-        if left_contains && !right_contains{
+        } else {
+            // Only left is some
             return self.left.as_ref().unwrap().get_closest(position);
+        }
+        // Both right and left are some
+        let left_closest;
+        let right_closest;
+        if left_contains && !right_contains{
+            // I can potentially prune the right branch
+            left_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
+            let dist = left_closest.1.distance(position);
+            if dist < self.right.as_ref().unwrap().bbox.distance(position) {
+                return Some(left_closest);
+            } else {
+                right_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
+            }
         } 
         else if right_contains && !left_contains {
-            return self.right.as_ref().unwrap().get_closest(position);
-        }
-        else {
-            let left_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
-            let right_closest = self.right.as_ref().unwrap().get_closest(position).unwrap();
-
-            let left_dist = left_closest.1.distance(position);
-            let right_dist = right_closest.1.distance(position);
-            if left_dist < right_dist { 
-                return Some(left_closest);
-            }
-            else {
+            // I can potentially prune the left branch
+            right_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
+            let dist = right_closest.1.distance(position);
+            if dist < self.left.as_ref().unwrap().bbox.distance(position) {
                 return Some(right_closest);
+            } else {
+                left_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
             }
         } 
+        else {
+            // TODO I can potentially prune if I get lucky and the same condition
+            // As in the cases above is true
+            left_closest = self.left.as_ref().unwrap().get_closest(position).unwrap();
+            right_closest = self.right.as_ref().unwrap().get_closest(position).unwrap();
+        } 
+        // Pick the closer one
+        let left_dist = left_closest.1.distance(position);
+        let right_dist = right_closest.1.distance(position);
+        if left_dist < right_dist { 
+            return Some(left_closest);
+        }
+        else {
+            return Some(right_closest);
+        }
     }
 
     pub fn get_in_radius (&self, position: &Vec3, radius: f32) -> Option<Vec<T>> {
