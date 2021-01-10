@@ -164,11 +164,24 @@ where T: Clone {
         } 
     }
 
+    pub fn get_in_radius (&self, position: &Vec3, radius: f32) -> Option<Vec<T>> {
+        if self.bbox.distance(position) > radius {
+            return None;
+        } 
+        if self.is_leaf() {
+            return Some(vec![self.data.as_ref().unwrap().clone()]);
+        }
+        let mut return_data = Vec::new();
+        if let Some(left) = &self.left {
+            return_data.append(&mut left.get_in_radius(position, radius).unwrap());
+        }
+        if let Some(right) = &self.right {
+            return_data.append(&mut right.get_in_radius(position, radius).unwrap());
+        }
+        Some(return_data)
+    }
+    
     // pub fn get_n_closest(&self, position: &Vec3, n: i32) -> Option<Vec<T>> {
-    //     None
-    // }
-
-    // pub fn get_in_radius (&self, position: &Vec3, radius: f32) -> Option<Vec<T>> {
     //     None
     // }
 }
