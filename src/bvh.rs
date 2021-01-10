@@ -39,19 +39,34 @@ impl AABB {
 
     fn distance(&self, point: &Vec3) -> f32 {
         // Returns negative values if point is within bounding box
-        let d_x = (self.min.x - point.x).abs().min((point.x - self.max.x).abs());
-        let d_y = (self.min.y - point.y).abs().min((point.y - self.max.y).abs());
-        let d_z = (self.min.z - point.z).abs().min((point.z - self.max.z).abs());
-        let distance =  (d_x.powi(2) + d_y.powi(2) + d_z.powi(2)).sqrt();
         if self.contains(point) { 
-            return -distance; 
+            let d_x = (point.x - self.min.x).min(self.max.x - point.x);
+            let d_y = (point.y - self.min.y).min(self.max.y - point.y);
+            let d_z = (point.z - self.min.z).min(self.max.z - point.z);
+            return -1.0 * d_x.min(d_y).min(d_z); 
+        } else {
+            let d_x = (self.min.x - point.x).max(0.0).max(point.x - self.max.x);
+            let d_y = (self.min.y - point.y).abs().min((point.y - self.max.y).abs());
+            let d_z = (self.min.z - point.z).abs().min((point.z - self.max.z).abs());
+            return  (d_x.powi(2) + d_y.powi(2) + d_z.powi(2)).sqrt();
         }
-        distance
     }
     
     pub fn translated(&self, translation: &Vec3) -> AABB {
         AABB::new(self.min + *translation, self.max + *translation)
     }
+}
+
+#[test]
+fn test_aabb_distance() {
+    let bbox = AABB::new(Vec3::splat(1.0), Vec3::splat(2.0));
+    assert_eq!(bbox.distance(&Vec3::new(0.0, 1.0, 1.0)), 1.0);
+    assert_eq!(bbox.distance(&Vec3::new(1.0, 0.0, 1.0)), 1.0);
+    assert_eq!(bbox.distance(&Vec3::new(1.0, 1.0, 0.0)), 1.0);
+    assert_eq!(bbox.distance(&Vec3::splat(1.0)), 0.0);
+    assert_eq!(bbox.distance(&Vec3::splat(2.0)), 0.0);
+    assert_eq!(bbox.distance(&Vec3::splat(1.5)), -0.5);
+    assert_eq!(bbox.distance(&Vec3::splat(1.25)), -0.25);
 }
 
 #[derive(Debug)]
