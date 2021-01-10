@@ -34,25 +34,38 @@ fn update_boids(
     let root = BVHNode::create(data_and_boxes.clone()).unwrap();
 
     // iterate over mutable query and update transforms
-    for (mut transform, _) in data_and_boxes.iter_mut() {
+    for mut transform in query.iter_mut() {
         if let Some(neighbors) = root.get_in_radius(&transform.translation, vision_radius) {
+            // rotate the boid somehow
             for neighbor in neighbors.iter() {
 
             }
+
+            let forward = transform.forward();
+            transform.translation += forward * time.delta_seconds();
         }
     }
 }
 
-// Look away from neighbors
+// Steer away from the closest neighbor
 fn separation(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
     Transform::default()
 }
-// Look in the same direction as neighbors
+// Look in the same direction as neighbors, Average of neighbors rotations
 fn alignment(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
     Transform::default()
 }
-// Look towards neighbors
+// Steer towards the geometric middle of the neighbors
 fn cohesion(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
+    // Geometric center of neighbors
+    let mut position_sum = Vec3::zero();
+    for neighbor in neighbors.iter() {
+        position_sum += neighbor.translation;
+    }
+    let position_avg = position_sum / neighbors.len() as f32;
+
+    // Look toward position_avg
+
     Transform::default()
 }
 
