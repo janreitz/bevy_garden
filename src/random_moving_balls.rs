@@ -64,6 +64,7 @@ fn spawn_balls(
     );
     let material_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
 
+    // Spawn random boxes
     for _ in 0..num_balls {
         let mut transform = Transform::from_translation(random_vec3() * 8.0);
         transform.apply_non_uniform_scale(Vec3::splat(0.25));
@@ -127,7 +128,7 @@ fn test_color_balls_bvs(
     let neutral_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
 
     // initialize bvh
-    let bbox = AABB::new(Vec3::splat(-2.5), Vec3::splat(2.5));
+    let bbox = AABB::new(Vec3::splat(-0.125), Vec3::splat(0.125));
     let mut data_and_boxes: Vec<(Entity, AABB)> = Vec::new();
     for (e, transform, mut material) in query_set.q0_mut().iter_mut() {
         data_and_boxes.push((e, bbox.translated(&transform.translation)));
