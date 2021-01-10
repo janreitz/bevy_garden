@@ -16,7 +16,7 @@ pub struct RandomMovingBallsPlugin;
 impl Plugin for RandomMovingBallsPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_asset::<MyMaterial>()
-            .add_startup_system(setup.system())
+            .add_startup_system(setup_transparent_material.system())
             .add_startup_system(spawn_balls.system())
             .add_system(move_balls.system())
             .add_system(test_color_balls_bvs.system());
@@ -43,7 +43,9 @@ fn spawn_balls(
     commands: &mut Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-
+    mut my_materials: ResMut<Assets<MyMaterial>>,
+    mut pipelines: ResMut<Assets<PipelineDescriptor>>,
+    asset_server: ResMut<AssetServer>,
 ) {
     let num_balls = 40;
 
@@ -61,18 +63,32 @@ fn spawn_balls(
         let position = random_vec3() * 8.0;
         spawn_ball(commands, mesh_handle.clone(), material_handle.clone(), position, 0.25);
     }
-    // The last spawned ball get this label attached
+
+    // Create a new shader pipeline with shaders loaded from the asset directory
+    let pipeline_handle = pipelines.add(PipelineDescriptor::default_config(ShaderStages {
+        vertex: asset_server.load::<Shader, _>("shaders/hot.vert"),
+        fragment: Some(asset_server.load::<Shader, _>("shaders/hot.frag")),
+    }));
+
+    let my_material = my_materials.add(MyMaterial {
+        color: Color::rgb(0.0, 0.8, 0.0),
+    });
+
     commands
         .with(FocusBall)
-        .with_children(|parent| {
-            parent.spawn(PbrBundle {
-                mesh: mesh_handle,
-                material: materials.add(
-                    Color::rgb(1.0, 0.9, 0.9).into()
-                ).clone(),
-                transform: Transform::from_scale(Vec3::splat(8.0)),
-                ..Default::default()
-            });});
+        .with_children(
+            |parent| {
+                parent.spawn(MeshBundle {
+                    mesh: mesh_handle,
+                    render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                        pipeline_handle,
+                    )]),
+                    transform: Transform::from_scale(Vec3::splat(8.0)),
+                    ..Default::default()
+                })
+                .with(my_material);
+            }
+    );
 }
 
 fn move_balls(
@@ -163,7 +179,7 @@ struct MyMaterial {
     pub color: Color,
 }
 
-fn setup(
+fn setup_transparent_material(
     commands: &mut Commands,
     asset_server: ResMut<AssetServer>,
     mut pipelines: ResMut<Assets<PipelineDescriptor>>,
@@ -190,28 +206,4 @@ fn setup(
     render_graph
         .add_node_edge("my_material", base::node::MAIN_PASS)
         .unwrap();
-
-    // Create a new material
-    let material = materials.add(MyMaterial {
-        color: Color::rgb(0.0, 0.8, 0.0),
-    });
-
-    // Setup our world
-    commands
-        // cube
-        .spawn(MeshBundle {
-            mesh: meshes.add(Mesh::from(shape::Cube { size: 2.0 })),
-            render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
-                pipeline_handle,
-            )]),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
-            ..Default::default()
-        })
-        .with(material)
-        // camera
-        .spawn(Camera3dBundle {
-            transform: Transform::from_translation(Vec3::new(3.0, 5.0, -8.0))
-                .looking_at(Vec3::default(), Vec3::unit_y()),
-            ..Default::default()
-        });
 }
