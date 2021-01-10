@@ -262,14 +262,14 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
         |outer, current| {
         AABB::outer(&outer, &current.1)
     });
+    
+    let mut before_split = Vec::new();
+    let mut after_split = Vec::new();
     // Find partition Axis (x, y or z)
     // Choose the one, where the outer centers have the largest distance 
     let outer_box_dimensions: Vec3 = outer_box.max - outer_box.min;
-
-    // Split in the geometric middle of the axis with largest spread
-    let mut before_split = Vec::new();
-    let mut after_split = Vec::new();
     let max_dimension = outer_box_dimensions.max_element();
+    // Split in the geometric middle of the axis with largest spread
     if outer_box_dimensions.x == max_dimension { 
         let center = outer_box.min.x + (outer_box_dimensions/2.0).x;
         data_and_boxes.sort_by(|a, b| { a.1.center.x.partial_cmp(&b.1.center.x).unwrap() });
@@ -295,6 +295,7 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
         }
     }
     else { 
+        assert_eq!(outer_box_dimensions.z, max_dimension);
         let center = outer_box.min.z + (outer_box_dimensions/2.0).z;
         data_and_boxes.sort_by(|a, b| { a.1.center.z.partial_cmp(&b.1.center.z).unwrap() });
         for p in data_and_boxes.iter() {
