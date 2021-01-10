@@ -35,7 +35,14 @@ fn spawn_balls(
 ) {
     let num_balls = 40;
 
-    let mesh_handle = meshes.add(Mesh::from(shape::Icosphere{radius: 1.0, subdivisions: 10}));
+    let mesh_handle = meshes.add(
+        Mesh::from(
+            shape::Icosphere{
+                radius: 1.0, 
+                subdivisions: 10
+            }
+        )
+    );
     let material_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
 
     for _ in 0..num_balls {
@@ -43,7 +50,17 @@ fn spawn_balls(
         spawn_ball(commands, mesh_handle.clone(), material_handle.clone(), position, 0.25);
     }
     // The last spawned ball get this label attached
-    commands.with(FocusBall);
+    commands
+        .with(FocusBall)
+        .with_children(|parent| {
+            parent.spawn(PbrBundle {
+                mesh: mesh_handle,
+                material: materials.add(
+                    Color::rgb(1.0, 0.9, 0.9).into()
+                ).clone(),
+                transform: Transform::from_scale(Vec3::splat(8.0)),
+                ..Default::default()
+            });});
 }
 
 fn move_balls(
@@ -67,6 +84,7 @@ fn test_color_balls_bvs(
 ) {
     let green_handle = materials.add(Color::GREEN.into());
     let red_handle = materials.add(Color::RED.into());
+    let blue_handle = materials.add(Color::BLUE.into());
     let neutral_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
 
     // initialize bvh
@@ -82,6 +100,15 @@ fn test_color_balls_bvs(
     for (transform, mut material) in query_set.q1_mut().iter_mut() {
         focus_ball_position = transform.translation.clone();
         *material = green_handle.clone();
+    }
+    
+    if let Some(entities) = root.get_in_radius(&focus_ball_position, 2.0){
+        for e in entities.iter() {
+            let mut material = query_set.q0_mut().get_component_mut::<Handle<StandardMaterial>>(*e).unwrap();    
+            *material = blue_handle.clone();
+        }
+    } else {
+        println!("No entities in radius");
     }
     
     if let Some(closest_entity) = root.get_closest(&focus_ball_position){
