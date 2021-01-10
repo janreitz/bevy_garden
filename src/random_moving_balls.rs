@@ -65,8 +65,15 @@ fn spawn_balls(
     let material_handle = materials.add(Color::rgb(1.0, 0.9, 0.9).into());
 
     for _ in 0..num_balls {
-        let position = random_vec3() * 8.0;
-        spawn_ball(commands, mesh_handle_box.clone(), material_handle.clone(), position, 0.25);
+        let mut transform = Transform::from_translation(random_vec3() * 8.0);
+        transform.apply_non_uniform_scale(Vec3::splat(0.25));
+        commands.spawn(PbrBundle {
+                mesh: mesh_handle_box.clone(),
+                material: material_handle.clone(),
+                transform: transform,
+                ..Default::default()
+            })
+            .with(RandomMovingBall);
     }
 
     // Create a new shader pipeline with shaders loaded from the asset directory
@@ -149,32 +156,11 @@ fn test_color_balls_bvs(
     } else {
         println!("No closest entity found");
     }
-    
-
 }
 
 fn random_vec3() -> Vec3 {
     Vec3::new(random::<f32>(), random::<f32>(), random::<f32>())
 }
-
-fn spawn_ball(
-    commands: &mut Commands,
-    mesh: Handle<Mesh>,
-    material: Handle<StandardMaterial>,
-    position: Vec3,
-    radius: f32,
-) {
-    let mut transform = Transform::from_translation(position);
-    transform.apply_non_uniform_scale(Vec3::new(radius, radius, radius));
-    commands.spawn(PbrBundle {
-            mesh: mesh,
-            material: material,
-            transform: transform,
-            ..Default::default()
-        })
-        .with(RandomMovingBall);
-}
-
 
 // Transparent Material
 #[derive(RenderResources, Default, TypeUuid)]
