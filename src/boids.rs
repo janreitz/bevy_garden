@@ -20,9 +20,40 @@ struct Boid;
 
 fn update_boids(
     time: Res<Time>,
-    mut query: Query<(Entity, &mut Transform), With<Boid>>
+    mut query: Query<&mut Transform, With<Boid>>,
 ) {
+    let vision_radius = 2.0_f32;
+    // initialize bvh
+    let bbox = AABB::new(Vec3::splat(-0.125), Vec3::splat(0.125));
+    let mut data_and_boxes: Vec<(Transform, AABB)> = Vec::new();
+    //let mut entities: Vec<Entity> = Vec::new();
+    for transform in query.iter_mut() {
+        data_and_boxes.push((transform.clone(), bbox.translated(&transform.translation)));
+    //    entities.push(e);
+    }
+    let root = BVHNode::create(data_and_boxes.clone()).unwrap();
 
+    // iterate over mutable query and update transforms
+    for (mut transform, _) in data_and_boxes.iter_mut() {
+        if let Some(neighbors) = root.get_in_radius(&transform.translation, vision_radius) {
+            for neighbor in neighbors.iter() {
+
+            }
+        }
+    }
+}
+
+// Look away from neighbors
+fn separation(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
+    Transform::default()
+}
+// Look in the same direction as neighbors
+fn alignment(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
+    Transform::default()
+}
+// Look towards neighbors
+fn cohesion(boid_t: &Transform, neighbors: &Vec<Transform>) -> Transform {
+    Transform::default()
 }
 
 fn spawn_boids(
