@@ -320,6 +320,8 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
         }
     }
 
+    assert!(before_split.len() > 0);
+    assert!(after_split.len() > 0);
     assert_eq!(before_split.len() + after_split.len(), data_and_boxes.len());
     (before_split, after_split)
 }
