@@ -39,7 +39,7 @@ fn update_boids(
                 let mut min_distance = Vec3::splat(f32::MAX) ;
                 for neighbor_transform in neighbor_transforms.iter() {
                     if *neighbor_transform == *boid_transform {
-                        // This will be me
+                        // Do not compare with self
                         continue;
                     }
                     sum_heading += neighbor_transform.forward();
