@@ -55,17 +55,17 @@ fn setup_ui(
                 flex_direction: FlexDirection::Column,
                 ..Default::default()
             },
-            material: materials.add(Color::PINK.into()),
+            material: materials.add(Color::NONE.into()),
             ..Default::default()
         })
         .with_children(|parent|{ 
-            spawn_button(parent, font.clone(), button_materials.normal.clone())
+            spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Cohesion"))
         })
         .with_children(|parent|{ 
-            spawn_button(parent, font.clone(), button_materials.normal.clone())
+            spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Alignment"))
         })
         .with_children(|parent|{ 
-            spawn_button(parent, font.clone(), button_materials.normal.clone())
+            spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Separation"))
         });
 }
 
@@ -73,6 +73,7 @@ fn spawn_button(
     builder: &mut ChildBuilder,
     font: Handle<Font>,
     material: Handle<ColorMaterial>,
+    label: String,
 ) {
     builder.spawn(ButtonBundle {
         style: Style {
@@ -91,7 +92,7 @@ fn spawn_button(
     .with_children(|parent| {
         parent.spawn(TextBundle {
             text: Text {
-                value: "Button".to_string(),
+                value: label,
                 font: font.clone(),
                 style: TextStyle {
                     font_size: 40.0,
