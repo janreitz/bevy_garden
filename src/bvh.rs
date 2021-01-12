@@ -214,7 +214,7 @@ where T: Clone {
     // }
 }
 
-fn test_construct_linear_boxes(n: i32) -> Vec<(i32, AABB)> {
+fn _test_construct_linear_boxes(n: i32) -> Vec<(i32, AABB)> {
     let mut data_and_boxes = Vec::new();
     for i in 0..n {
         data_and_boxes.push((i, AABB::new(
@@ -226,14 +226,14 @@ fn test_construct_linear_boxes(n: i32) -> Vec<(i32, AABB)> {
 
 #[test]
 fn test_bvh_create() {
-    let data_and_boxes = test_construct_linear_boxes(5);
+    let data_and_boxes = _test_construct_linear_boxes(5);
     let root = BVHNode::create(data_and_boxes);
     assert!(root.is_some());
 }
 
 #[test]
 fn test_get_closest() {
-    let data_and_boxes = test_construct_linear_boxes(5);
+    let data_and_boxes = _test_construct_linear_boxes(5);
     let root_opt = BVHNode::create(data_and_boxes);
     assert!(root_opt.is_some());
     let root = root_opt.unwrap();
@@ -272,7 +272,10 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
     // Split in the geometric middle of the axis with largest spread
     if outer_box_dimensions.x == max_dimension { 
         let center = outer_box.min.x + (outer_box_dimensions/2.0).x;
-        data_and_boxes.sort_by(|a, b| { a.1.center.x.partial_cmp(&b.1.center.x).unwrap() });
+        data_and_boxes.sort_by(|a, b| { 
+            assert!(b.1.center.x.is_finite());
+            a.1.center.x.partial_cmp(&b.1.center.x).unwrap() 
+        });
         for p in data_and_boxes.iter() {
             if p.1.center.x <= center {
                 // TODO I should prevent the copies of data Members by 
@@ -284,7 +287,10 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
     }
     else if outer_box_dimensions.y == max_dimension { 
         let center = outer_box.min.y + (outer_box_dimensions/2.0).y;
-        data_and_boxes.sort_by(|a, b| { a.1.center.y.partial_cmp(&b.1.center.y).unwrap() });
+        data_and_boxes.sort_by(|a, b| { 
+            assert!(b.1.center.y.is_finite());
+            a.1.center.y.partial_cmp(&b.1.center.y).unwrap() 
+        });
         for p in data_and_boxes.iter() {
             if p.1.center.y <= center {
                 // TODO I should prevent the copies of data Members by 
@@ -297,7 +303,9 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
     else { 
         assert_eq!(outer_box_dimensions.z, max_dimension);
         let center = outer_box.min.z + (outer_box_dimensions/2.0).z;
-        data_and_boxes.sort_by(|a, b| { a.1.center.z.partial_cmp(&b.1.center.z).unwrap() });
+        data_and_boxes.sort_by(|a, b| { 
+            assert!(b.1.center.z.is_finite());
+            a.1.center.z.partial_cmp(&b.1.center.z).unwrap() });
         for p in data_and_boxes.iter() {
             if p.1.center.z <= center {
                 // TODO I should prevent the copies of data Members by 
