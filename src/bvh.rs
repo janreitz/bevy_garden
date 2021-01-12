@@ -257,11 +257,15 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
 {
     assert!(data_and_boxes.len() > 1);
 
-    let outer_box = data_and_boxes.iter().fold(
-        data_and_boxes.get(0).unwrap().1, 
-        |outer, current| {
-        AABB::outer(&outer, &current.1)
-    });
+    let outer_box = data_and_boxes
+        .iter()
+        .fold(
+            data_and_boxes.get(0).unwrap().1, 
+            |outer, current| 
+            {
+                AABB::outer(&outer, &current.1)
+            }
+        );
     
     let mut before_split = Vec::new();
     let mut after_split = Vec::new();
