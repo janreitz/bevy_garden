@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, ui::FlexSurface};
 use crate::bvh::{BVHNode, AABB};
 use crate::utils::random_vec3;
 
@@ -18,35 +18,109 @@ struct Boid;
 fn setup_ui(
     commands: &mut Commands,
     asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
     button_materials: Res<ButtonMaterials>,
 ) {
     commands
-        .spawn(ButtonBundle {
+        // root node
+        .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                // center button
-                margin: Rect::all(Val::Auto),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
-                align_items: AlignItems::Center,
+                size: Size::new(Val::Percent(20.0), Val::Percent(20.0)),
+                justify_content: JustifyContent::SpaceBetween,
+                flex_direction: FlexDirection::Column,
                 ..Default::default()
             },
-            material: button_materials.normal.clone(),
+            material: materials.add(Color::PINK.into()),
             ..Default::default()
         })
-        .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    value: "Button".to_string(),
-                    font: asset_server.load("fonts/Inconsolata.ttf"),
-                    style: TextStyle {
-                        font_size: 40.0,
-                        color: Color::rgb(0.9, 0.9, 0.9),
-                        ..Default::default()
-                    },
+        .with_children(|parent|{ 
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                    // center button
+                    margin: Rect::all(Val::Auto),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..Default::default()
                 },
+                material: button_materials.normal.clone(),
                 ..Default::default()
+            })
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text {
+                        value: "Button".to_string(),
+                        font: asset_server.load("fonts/Inconsolata.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default()
+                });
+            });
+        })
+        .with_children(|parent|{ 
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                    // center button
+                    margin: Rect::all(Val::Auto),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: button_materials.normal.clone(),
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text {
+                        value: "Button".to_string(),
+                        font: asset_server.load("fonts/Inconsolata.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default()
+                });
+            });
+        })
+        .with_children(|parent|{ 
+            parent.spawn(ButtonBundle {
+                style: Style {
+                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
+                    // center button
+                    margin: Rect::all(Val::Auto),
+                    // horizontally center child text
+                    justify_content: JustifyContent::Center,
+                    // vertically center child text
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                material: button_materials.normal.clone(),
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text {
+                        value: "Button".to_string(),
+                        font: asset_server.load("fonts/Inconsolata.ttf"),
+                        style: TextStyle {
+                            font_size: 40.0,
+                            color: Color::rgb(0.9, 0.9, 0.9),
+                            ..Default::default()
+                        },
+                    },
+                    ..Default::default()
+                });
             });
         });
 }
