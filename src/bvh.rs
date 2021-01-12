@@ -77,6 +77,8 @@ pub struct BVHNode<T: Clone> {
     right: Option<Box<BVHNode<T>>>,
 }
 
+// static mut CALLS_TO_CREATE: i32 = 0;
+
 impl<T> BVHNode<T>
 where T: Clone {
     fn new(data: T, bbox: AABB) -> BVHNode<T> {
@@ -88,6 +90,10 @@ where T: Clone {
         }
     }
     pub fn create(mut data_and_boxes: Vec<(T, AABB)>) -> Option<BVHNode<T>> {
+        // unsafe {
+        //     CALLS_TO_CREATE += 1;
+        //     println!("create was called: {} times", CALLS_TO_CREATE);
+        // }
         match data_and_boxes.len() {
             0 => { 
                 // This should not happen
@@ -320,6 +326,7 @@ fn split_heuristic<T: Clone>(mut data_and_boxes: Vec<(T, AABB)>)
         }
     }
 
+    // println!("elements before|after split: {}|{}", before_split.len(), after_split.len());
     assert!(before_split.len() > 0);
     assert!(after_split.len() > 0);
     assert_eq!(before_split.len() + after_split.len(), data_and_boxes.len());
