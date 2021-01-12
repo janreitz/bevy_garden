@@ -1,4 +1,4 @@
-use bevy::{prelude::*, ui::FlexSurface};
+use bevy::prelude::*;
 use crate::bvh::{BVHNode, AABB};
 use crate::utils::random_vec3;
 
@@ -21,11 +21,19 @@ fn setup_ui(
     mut materials: ResMut<Assets<ColorMaterial>>,
     button_materials: Res<ButtonMaterials>,
 ) {
+
+    let font = asset_server.load("fonts/Inconsolata.ttf");
+
     commands
         // root node
         .spawn(NodeBundle {
             style: Style {
-                size: Size::new(Val::Percent(20.0), Val::Percent(20.0)),
+                size: Size::new(Val::Percent(25.0), Val::Percent(30.0)),
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(0.0),
+                    ..Default::default()
+                },
                 justify_content: JustifyContent::SpaceBetween,
                 flex_direction: FlexDirection::Column,
                 ..Default::default()
@@ -34,95 +42,49 @@ fn setup_ui(
             ..Default::default()
         })
         .with_children(|parent|{ 
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                    // center button
-                    margin: Rect::all(Val::Auto),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Button".to_string(),
-                        font: asset_server.load("fonts/Inconsolata.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default()
-                });
-            });
+            spawn_button(parent, font.clone(), button_materials.normal.clone())
         })
         .with_children(|parent|{ 
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                    // center button
-                    margin: Rect::all(Val::Auto),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Button".to_string(),
-                        font: asset_server.load("fonts/Inconsolata.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default()
-                });
-            });
+            spawn_button(parent, font.clone(), button_materials.normal.clone())
         })
         .with_children(|parent|{ 
-            parent.spawn(ButtonBundle {
-                style: Style {
-                    size: Size::new(Val::Px(150.0), Val::Px(65.0)),
-                    // center button
-                    margin: Rect::all(Val::Auto),
-                    // horizontally center child text
-                    justify_content: JustifyContent::Center,
-                    // vertically center child text
-                    align_items: AlignItems::Center,
-                    ..Default::default()
-                },
-                material: button_materials.normal.clone(),
-                ..Default::default()
-            })
-            .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text {
-                        value: "Button".to_string(),
-                        font: asset_server.load("fonts/Inconsolata.ttf"),
-                        style: TextStyle {
-                            font_size: 40.0,
-                            color: Color::rgb(0.9, 0.9, 0.9),
-                            ..Default::default()
-                        },
-                    },
-                    ..Default::default()
-                });
-            });
+            spawn_button(parent, font.clone(), button_materials.normal.clone())
         });
+}
+
+fn spawn_button(
+    builder: &mut ChildBuilder,
+    font: Handle<Font>,
+    material: Handle<ColorMaterial>,
+) {
+    builder.spawn(ButtonBundle {
+        style: Style {
+            size: Size::new(Val::Percent(100.0), Val::Percent(30.0)),
+            // center button
+            margin: Rect::all(Val::Auto),
+            // horizontally center child text
+            justify_content: JustifyContent::Center,
+            // vertically center child text
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        material: material.clone(),
+        ..Default::default()
+    })
+    .with_children(|parent| {
+        parent.spawn(TextBundle {
+            text: Text {
+                value: "Button".to_string(),
+                font: font.clone(),
+                style: TextStyle {
+                    font_size: 40.0,
+                    color: Color::rgb(0.9, 0.9, 0.9),
+                    ..Default::default()
+                },
+            },
+            ..Default::default()
+        });
+    });
 }
 
 fn button_system(
