@@ -56,9 +56,16 @@ fn update_boids(
 
                 // Separation
                 // Steer away from the closest neighbor
-                // assert_ne!(min_distance, Vec3::splat(999.9));
+                assert_ne!(min_distance, Vec3::splat(f32::MAX));
                 // println!("boids::update_boids -> min_distance = {}", min_distance);
                 // let rotation = boid_transform.forward().cross(min_distance);
+                
+                let heading = boid_transform.forward();
+                let w = heading.cross(min_distance) * 1.0 * dt * 0.5 * 0.1;
+                let w = Quat::from_xyzw(w.x, w.y, w.z, 0.0); 
+
+                boid_transform.rotation = boid_transform.rotation + w.mul_quat(boid_transform.rotation);
+                boid_transform.rotation.normalize();
                 // assert!(rotation.is_finite());
                 // assert_ne!(rotation, Vec3::zero());
                 //let separation = Quat::from_axis_angle(rotation, 10.0 / rotation.length());
