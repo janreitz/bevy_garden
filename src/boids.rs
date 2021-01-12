@@ -67,20 +67,20 @@ fn update_boids(
                 // Alignment
                 // Look towards the same direction as neighbors
                 let heading = boid_transform.forward();
-                let rotation = heading.cross(avg_heading);
-                let alignment = Quat::from_axis_angle(rotation, rotation.length() * 0.03);
-                assert!(alignment.is_finite());
-                
+                let w = heading.cross(avg_heading) * 1.0 * dt * 0.5 * 0.1;
+                let w = Quat::from_xyzw(w.x, w.y, w.z, 0.0); 
+
+                boid_transform.rotation = boid_transform.rotation + w.mul_quat(boid_transform.rotation);
+                boid_transform.rotation.normalize();
+
                 // Cohesion
                 // Steer toward position_avg
                 let heading = boid_transform.forward();
-                let rotation = heading.cross(avg_position - boid_transform.translation);
-                let cohesion = Quat::from_axis_angle(rotation, rotation.length() * 0.1);
-                assert!(cohesion.is_finite());
+                let w = heading.cross(avg_position - boid_transform.translation) * 1.0 * dt * 0.5 * 0.1;
+                let w = Quat::from_xyzw(w.x, w.y, w.z, 0.0); 
 
-                let rotation = alignment * cohesion; // separation
-                assert!(rotation.is_finite());
-                boid_transform.rotate(rotation);
+                boid_transform.rotation = boid_transform.rotation + w.mul_quat(boid_transform.rotation);
+                boid_transform.rotation.normalize();
             }
             
             let forward = boid_transform.forward();
