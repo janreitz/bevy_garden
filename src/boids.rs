@@ -29,37 +29,66 @@ fn update_boids(
     let root = BVHNode::create(data_and_boxes.clone()).unwrap();
 
     // iterate over mutable query and update transforms
-    for mut transform in query.iter_mut() {
-        if let Some(neighbors) = root.get_in_radius(&transform.translation, vision_radius) {
-            let mut sum_heading = Vec3::zero();
-            let mut sum_position = Vec3::zero();
-            for neighbor in neighbors.iter() {
-                sum_heading += neighbor.forward();
-                sum_position += neighbor.translation;
+    for mut boid_transform in query.iter_mut() {
+        if let Some(neighbor_transforms) = root.get_in_radius(&boid_transform.translation, vision_radius) {
+            if neighbor_transforms.len() < 2 {
+                // No effective neighbors, only comparing with self
+            } else {
+                let mut sum_heading = Vec3::zero();
+                let mut sum_position = Vec3::zero();
+                let mut min_distance = Vec3::splat(f32::MAX) ;
+                for neighbor_transform in neighbor_transforms.iter() {
+                    if *neighbor_transform == *boid_transform {
+                        // This will be me
+                        continue;
+                    }
+                    sum_heading += neighbor_transform.forward();
+                    sum_position += neighbor_transform.translation;
+                    let distance = neighbor_transform.translation - boid_transform.translation;
+                    if distance.length() < min_distance.length() 
+                        // Avoid comparing with self
+                        && 0.000001 < distance.length()  {
+                        min_distance = distance;
+                    }
+                }
+                let avg_position = sum_position / neighbor_transforms.len() as f32;
+                let avg_heading = sum_heading / neighbor_transforms.len() as f32;
+
+                // Separation
+                // Steer away from the closest neighbor
+                // assert_ne!(min_distance, Vec3::splat(999.9));
+                // println!("boids::update_boids -> min_distance = {}", min_distance);
+                // let rotation = boid_transform.forward().cross(min_distance);
+                // assert!(rotation.is_finite());
+                // assert_ne!(rotation, Vec3::zero());
+                //let separation = Quat::from_axis_angle(rotation, 10.0 / rotation.length());
+                //assert!(separation.is_finite());
+                
+                // Alignment
+                // Look towards the same direction as neighbors
+                let heading = boid_transform.forward();
+                let rotation = heading.cross(avg_heading);
+                let alignment = Quat::from_axis_angle(rotation, rotation.length() * 0.03);
+                assert!(alignment.is_finite());
+                
+                // Cohesion
+                // Steer toward position_avg
+                let heading = boid_transform.forward();
+                let rotation = heading.cross(avg_position - boid_transform.translation);
+                let cohesion = Quat::from_axis_angle(rotation, rotation.length() * 0.1);
+                assert!(cohesion.is_finite());
+
+                let rotation = alignment * cohesion; // separation
+                assert!(rotation.is_finite());
+                boid_transform.rotate(rotation);
             }
             
-            let avg_position = sum_position / neighbors.len() as f32;
-            let avg_heading = sum_heading / neighbors.len() as f32;
-            // Separation
-            // Steer away from the closest neighbor
-            
-            // Alignment
-            // Look towards the same direction as neighbors
-            let heading = transform.forward();
-            let rotation = heading.cross(avg_heading);
-            let alignment = Quat::from_axis_angle(rotation, rotation.length() * 0.1);
-            transform.rotate(alignment);
-            
-            // Cohesion
-            // Steer toward position_avg
-            let heading = transform.forward();
-            let position = transform.translation;
-            let rotation = heading.cross(avg_position - position);
-            let cohesion = Quat::from_axis_angle(rotation, rotation.length() * 0.1);
-            transform.rotate(cohesion);
+            let forward = boid_transform.forward();
+            assert!(forward.is_finite());
+            boid_transform.translation += forward * dt;
 
-            let forward = transform.forward();
-            transform.translation += forward * time.delta_seconds();
+            assert!(boid_transform.translation.is_finite());
+            assert!(boid_transform.rotation.is_finite());
         }
     }
 }
