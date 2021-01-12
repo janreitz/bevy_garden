@@ -6,10 +6,27 @@ pub struct BoidsPlugin;
 impl Plugin for BoidsPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.init_resource::<ButtonMaterials>()
+            .init_resource::<BoidParameter>()
             .add_startup_system(setup_ui.system())
             .add_startup_system(spawn_boids.system())
             .add_system(update_boids.system())
             .add_system(button_system.system());
+    }
+}
+
+struct BoidParameter {
+    cohesion: f32,
+    alignment: f32,
+    separation: f32,
+}
+
+impl Default for BoidParameter {
+    fn default() -> BoidParameter {
+        BoidParameter {
+            cohesion: 0.1,
+            alignment: 0.1,
+            separation: 0.1,
+        }
     }
 }
 
@@ -116,6 +133,7 @@ fn button_system(
 
 fn update_boids(
     time: Res<Time>,
+    params: Res<BoidParameter>,
     mut query: Query<&mut Transform, With<Boid>>,
 ) {
     let vision_radius = 4.0_f32;
@@ -163,7 +181,7 @@ fn update_boids(
                 // let rotation = boid_transform.forward().cross(min_distance);
                 
                 let heading = boid_transform.forward();
-                let w = heading.cross(min_distance) * 1.0 * dt * 0.5 * 0.1;
+                let w = heading.cross(min_distance) * 1.0 * dt * 0.5 * params.separation;
                 let w = Quat::from_xyzw(w.x, w.y, w.z, 0.0); 
 
                 boid_transform.rotation = boid_transform.rotation + w.mul_quat(boid_transform.rotation);
@@ -176,7 +194,7 @@ fn update_boids(
                 // Alignment
                 // Look towards the same direction as neighbors
                 let heading = boid_transform.forward();
-                let w = heading.cross(avg_heading) * 1.0 * dt * 0.5 * 0.1;
+                let w = heading.cross(avg_heading) * 1.0 * dt * 0.5 * params.alignment;
                 let w = Quat::from_xyzw(w.x, w.y, w.z, 0.0); 
 
                 boid_transform.rotation = boid_transform.rotation + w.mul_quat(boid_transform.rotation);
@@ -185,7 +203,7 @@ fn update_boids(
                 // Cohesion
                 // Steer toward position_avg
                 let heading = boid_transform.forward();
-                let w = heading.cross(avg_position - boid_transform.translation) * 1.0 * dt * 0.5 * 0.1;
+                let w = heading.cross(avg_position - boid_transform.translation) * 1.0 * dt * 0.5 * params.cohesion;
                 let w = Quat::from_xyzw(w.x, w.y, w.z, 0.0); 
 
                 boid_transform.rotation = boid_transform.rotation + w.mul_quat(boid_transform.rotation);
