@@ -16,7 +16,8 @@ fn update_boids(
     time: Res<Time>,
     mut query: Query<&mut Transform, With<Boid>>,
 ) {
-    let vision_radius = 2.0_f32;
+    let vision_radius = 4.0_f32;
+    let dt = time.delta_seconds();
     // initialize bvh
     let bbox = AABB::new(Vec3::splat(-0.125), Vec3::splat(0.125));
     let mut data_and_boxes: Vec<(Transform, AABB)> = Vec::new();
