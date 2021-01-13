@@ -10,7 +10,8 @@ impl Plugin for BoidsPlugin {
             .add_startup_system(setup_ui.system())
             .add_startup_system(spawn_boids.system())
             .add_system(update_boids.system())
-            .add_system(button_system.system());
+            .add_system(button_system.system())
+            .add_system(slider_system.system());
     }
 }
 
@@ -59,7 +60,7 @@ fn setup_ui(
             ..Default::default()
         })
         .with_children(|parent|{ 
-            spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Cohesion"))
+            spawn_slider(parent, font.clone(), button_materials.normal.clone(), String::from("Cohesion"))
         })
         .with_children(|parent|{ 
             spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Alignment"))
@@ -67,6 +68,60 @@ fn setup_ui(
         .with_children(|parent|{ 
             spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Separation"))
         });
+}
+
+#[derive(Debug)]
+struct Slider {
+    min: f32,
+    max: f32,
+    value: f32,
+}
+
+impl Default for Slider {
+    fn default() -> Slider {
+        Slider {
+            min: 0.0,
+            max: 1.0,
+            value: 1.0
+        }
+    }
+}
+
+fn spawn_slider(
+    builder: &mut ChildBuilder,
+    font: Handle<Font>,
+    material_base: Handle<ColorMaterial>,
+    label: String,
+) {
+    builder.spawn(ButtonBundle {
+        style: Style {
+            size: Size::new(Val::Percent(100.0), Val::Percent(30.0)),
+            // center button
+            margin: Rect::all(Val::Auto),
+            // horizontally center child text
+            justify_content: JustifyContent::Center,
+            // vertically center child text
+            align_items: AlignItems::Center,
+            ..Default::default()
+        },
+        material: material_base.clone(),
+        ..Default::default()
+    })
+    .with_children(|parent| {
+        parent.spawn(TextBundle {
+            text: Text {
+                value: label,
+                font: font.clone(),
+                style: TextStyle {
+                    font_size: 40.0,
+                    color: Color::rgb(0.9, 0.9, 0.9),
+                    ..Default::default()
+                },
+            },
+            ..Default::default()
+        });
+    })
+    .with(Slider::default());
 }
 
 fn spawn_button(
@@ -105,11 +160,38 @@ fn spawn_button(
     });
 }
 
+fn slider_system(
+    button_materials: Res<ButtonMaterials>,
+    mut interaction_query: Query<
+        (&Interaction, &mut Handle<ColorMaterial>, &Children),
+        (Mutated<Interaction>, With<Slider>),
+    >,
+    mut text_query: Query<&mut Text>,
+) {
+    for (interaction, mut material, children) in interaction_query.iter_mut() {
+        let mut text = text_query.get_mut(children[0]).unwrap();
+        match *interaction {
+            Interaction::Clicked => {
+                text.value = "PressSlider".to_string();
+                *material = button_materials.pressed.clone();
+            }
+            Interaction::Hovered => {
+                text.value = "HoverSlider".to_string();
+                *material = button_materials.hovered.clone();
+            }
+            Interaction::None => {
+                text.value = "Slider".to_string();
+                *material = button_materials.normal.clone();
+            }
+        }
+    }
+}
+
 fn button_system(
     button_materials: Res<ButtonMaterials>,
     mut interaction_query: Query<
         (&Interaction, &mut Handle<ColorMaterial>, &Children),
-        (Mutated<Interaction>, With<Button>),
+        (Mutated<Interaction>, With<Button>, Without<Slider>),
     >,
     mut text_query: Query<&mut Text>,
 ) {
