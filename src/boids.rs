@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::pipeline::RenderPipeline, ui::{FocusPolicy, UI_PIPELINE_HANDLE}};
 use crate::bvh::{BVHNode, AABB};
 use crate::utils::random_vec3;
 
@@ -60,7 +60,11 @@ fn setup_ui(
             ..Default::default()
         })
         .with_children(|parent|{ 
-            spawn_slider(parent, font.clone(), button_materials.normal.clone(), String::from("Cohesion"))
+            spawn_slider(parent, 
+                font.clone(), 
+                button_materials.normal.clone(), 
+                button_materials.pressed.clone(), 
+                String::from("Cohesion"))
         })
         .with_children(|parent|{ 
             spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Alignment"))
@@ -70,8 +74,8 @@ fn setup_ui(
         });
 }
 
-#[derive(Debug)]
-struct Slider {
+#[derive(Debug, Clone)]
+pub struct Slider {
     min: f32,
     max: f32,
     value: f32,
@@ -87,10 +91,51 @@ impl Default for Slider {
     }
 }
 
+#[derive(Bundle, Clone, Debug)]
+pub struct SliderBundle {
+    pub node: Node,
+    pub slider: Slider,
+    pub style: Style,
+    pub interaction: Interaction,
+    pub focus_policy: FocusPolicy,
+    pub mesh: Handle<Mesh>, // TODO: maybe abstract this out
+    pub material_base: Handle<ColorMaterial>,
+    pub draw: Draw,
+    pub visible: Visible,
+    pub render_pipelines: RenderPipelines,
+    pub transform: Transform,
+    pub global_transform: GlobalTransform,
+}
+
+impl Default for SliderBundle {
+    fn default() -> Self {
+        SliderBundle {
+            slider: Slider::default(),
+            mesh: bevy::sprite::QUAD_HANDLE.typed(),
+            render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                UI_PIPELINE_HANDLE.typed(),
+            )]),
+            interaction: Default::default(),
+            focus_policy: Default::default(),
+            node: Default::default(),
+            style: Default::default(),
+            material_base: Default::default(),
+            draw: Default::default(),
+            visible: Visible {
+                is_transparent: true,
+                ..Default::default()
+            },
+            transform: Default::default(),
+            global_transform: Default::default(),
+        }
+    }
+}
+
 fn spawn_slider(
     builder: &mut ChildBuilder,
     font: Handle<Font>,
     material_base: Handle<ColorMaterial>,
+    material_slider: Handle<ColorMaterial>,
     label: String,
 ) {
     builder.spawn(ButtonBundle {
@@ -108,18 +153,31 @@ fn spawn_slider(
         ..Default::default()
     })
     .with_children(|parent| {
-        parent.spawn(TextBundle {
-            text: Text {
-                value: label,
-                font: font.clone(),
-                style: TextStyle {
-                    font_size: 40.0,
-                    color: Color::rgb(0.9, 0.9, 0.9),
+        parent
+            // Slider Rect
+            .spawn(NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    position_type: PositionType::Relative,
+                    border: Rect::all(Val::Px(2.0)),
                     ..Default::default()
                 },
+                material: material_slider.clone(),
+                ..Default::default()
+            });
+            
+    })
+    .with(TextBundle {
+            text: Text {
+            value: label,
+            font: font.clone(),
+            style: TextStyle {
+                font_size: 40.0,
+                color: Color::rgb(0.9, 0.9, 0.9),
+                ..Default::default()
             },
-            ..Default::default()
-        });
+        },
+        ..Default::default()
     })
     .with(Slider::default());
 }
