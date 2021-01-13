@@ -32,7 +32,7 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
-        .add_plugin(PanOrbitCameraPlugin)
+        //.add_plugin(PanOrbitCameraPlugin)
         //.add_plugin(TreePlugin)
         //.add_plugin(WeatherPlugin)
         //.add_plugin(DynamicsPlugin)

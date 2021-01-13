@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::pipeline::RenderPipeline, ui::{FocusPolicy, UI_PIPELINE_HANDLE}};
+use bevy::{prelude::*, render::pipeline::RenderPipeline, transform, ui::{FocusPolicy, UI_PIPELINE_HANDLE}};
 use crate::bvh::{BVHNode, AABB};
 use crate::utils::random_vec3;
 
@@ -392,6 +392,20 @@ fn spawn_boids(
             })
             .with(Boid);
     }
+    commands.with_children(|parent| {
+        parent.spawn(Camera3dBundle {
+                transform: {
+                    // look in front
+                    let mut transform = Transform::from_rotation(
+                        Quat::from_axis_angle(Vec3::unit_y(), 180.0_f32.to_radians()));
+                    // Move Camera back and up
+                    transform.translation += Vec3::new(0.0, 0.0, -30.0);
+                    transform
+                },
+                ..Default::default()
+            }
+        );
+    });
 }
 
 struct ButtonMaterials {
