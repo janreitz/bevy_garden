@@ -8,6 +8,7 @@ mod boids;
 use boids::*;
 mod bvh;
 mod utils;
+mod slider;
 
 fn setup(
     commands: &mut Commands,

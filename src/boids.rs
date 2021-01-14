@@ -1,6 +1,7 @@
-use bevy::{prelude::*, render::pipeline::RenderPipeline, transform, ui::{FocusPolicy, UI_PIPELINE_HANDLE}};
+use bevy::prelude::*;
 use crate::bvh::{BVHNode, AABB};
 use crate::utils::random_vec3;
+use crate::slider::{Slider, SliderBundle};
 
 pub struct BoidsPlugin;
 impl Plugin for BoidsPlugin {
@@ -72,63 +73,6 @@ fn setup_ui(
         .with_children(|parent|{ 
             spawn_button(parent, font.clone(), button_materials.normal.clone(), String::from("Separation"))
         });
-}
-
-#[derive(Debug, Clone)]
-pub struct Slider {
-    min: f32,
-    max: f32,
-    value: f32,
-}
-
-impl Default for Slider {
-    fn default() -> Slider {
-        Slider {
-            min: 0.0,
-            max: 1.0,
-            value: 1.0
-        }
-    }
-}
-
-#[derive(Bundle, Clone, Debug)]
-pub struct SliderBundle {
-    pub node: Node,
-    pub slider: Slider,
-    pub style: Style,
-    pub interaction: Interaction,
-    pub focus_policy: FocusPolicy,
-    pub mesh: Handle<Mesh>, // TODO: maybe abstract this out
-    pub material_base: Handle<ColorMaterial>,
-    pub draw: Draw,
-    pub visible: Visible,
-    pub render_pipelines: RenderPipelines,
-    pub transform: Transform,
-    pub global_transform: GlobalTransform,
-}
-
-impl Default for SliderBundle {
-    fn default() -> Self {
-        SliderBundle {
-            slider: Slider::default(),
-            mesh: bevy::sprite::QUAD_HANDLE.typed(),
-            render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
-                UI_PIPELINE_HANDLE.typed(),
-            )]),
-            interaction: Default::default(),
-            focus_policy: Default::default(),
-            node: Default::default(),
-            style: Default::default(),
-            material_base: Default::default(),
-            draw: Default::default(),
-            visible: Visible {
-                is_transparent: true,
-                ..Default::default()
-            },
-            transform: Default::default(),
-            global_transform: Default::default(),
-        }
-    }
 }
 
 fn spawn_slider(
