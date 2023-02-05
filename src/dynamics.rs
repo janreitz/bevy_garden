@@ -2,14 +2,15 @@ use bevy::prelude::*;
 
 pub struct DynamicsPlugin;
 impl Plugin for DynamicsPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<Gravity>()
-            .add_startup_system(spawn_test_box.system())
-            .add_system(gravity.system())
-            .add_system(dynamic_simulation.system());
+            .add_startup_system(spawn_test_box)
+            .add_system(gravity)
+            .add_system(dynamic_simulation);
     }
 }
 
+#[derive(Component)]
 pub struct RigidBody {
     mass: f32,
     inverted_inertia: Mat3,
@@ -92,6 +93,7 @@ fn dynamic_simulation(
     }
 }
 
+#[derive(Resource)]
 pub struct Gravity{
     acceleration: Vec3,
 }
@@ -117,17 +119,18 @@ fn gravity(
 } 
 
 fn spawn_test_box(
-    commands: &mut Commands,
+    mut commands:  Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let mesh_handle = meshes.add(Mesh::from(shape::Box::new(1.0, 1.0, 1.0)));
     let material_handle = materials.add(Color::BLUE.into());
-    commands.spawn(PbrBundle {
+    commands
+    .spawn(PbrBundle {
         mesh: mesh_handle,
         material: material_handle,
         transform: Transform::from_translation(Vec3::new(4.0, 4.0, 4.0)),
         ..Default::default()
     })
-    .with(RigidBody::default());
+    .insert(RigidBody::default());
 }

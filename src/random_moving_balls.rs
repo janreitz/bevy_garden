@@ -3,10 +3,9 @@ use bevy::{
     reflect::TypeUuid,
     render::{
         mesh::shape,
-        pipeline::{PipelineDescriptor, RenderPipeline},
+        render_resource::{PipelineDescriptor, ShaderStages},
         render_graph::{base, AssetRenderResourcesNode, RenderGraph},
         renderer::RenderResources,
-        shader::ShaderStages,
     },
 };
 use rand::random;
@@ -14,16 +13,18 @@ use crate::bvh::{BVHNode, AABB};
 
 pub struct RandomMovingBallsPlugin;
 impl Plugin for RandomMovingBallsPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_asset::<MyMaterial>()
-            .add_startup_system(setup_transparent_material.system())
-            .add_startup_system(spawn_balls.system())
-            .add_system(move_balls.system())
-            .add_system(test_color_balls_bvs.system());
+            .add_startup_system(setup_transparent_material)
+            .add_startup_system(spawn_balls)
+            .add_system(move_balls)
+            .add_system(test_color_balls_bvs);
     }
 }
 
+#[derive(Component)]
 struct RandomMovingBall;
+#[derive(Component)]
 struct FocusBall;
 
 // struct BallBoundingBox{
@@ -40,7 +41,7 @@ struct FocusBall;
 // }
 
 fn spawn_balls(
-    commands: &mut Commands,
+    mut commands:  Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut my_materials: ResMut<Assets<MyMaterial>>,
@@ -90,15 +91,16 @@ fn spawn_balls(
     commands
         .with(FocusBall)
         .with_children( |parent| {
-                parent.spawn(MeshBundle {
+                parent
+                .spawn(MaterialMeshBundle {
                     mesh: mesh_handle_ball,
-                    render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
-                        pipeline_handle,
-                    )]),
+                    //render_pipelines: RenderPipelines::from_pipelines(vec![RenderPipeline::new(
+                    //     pipeline_handle,
+                    // )]),
                     transform: Transform::from_scale(Vec3::splat(8.0)),
                     ..Default::default()
                 })
-                .with(my_material);
+                .insert(my_material);
             }
     );
 }
@@ -117,8 +119,8 @@ fn move_balls(
 fn test_color_balls_bvs(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query_set: QuerySet<(
-        Query<(Entity, &Transform, &mut Handle<StandardMaterial>), (With<RandomMovingBall>, Without<FocusBall>)>,
-        Query<(&Transform, &mut Handle<StandardMaterial>), With<FocusBall>>,
+        QueryState<(Entity, &Transform, &mut Handle<StandardMaterial>), (With<RandomMovingBall>, Without<FocusBall>)>,
+        QueryState<(&Transform, &mut Handle<StandardMaterial>), With<FocusBall>>,
     )>
 
 ) {

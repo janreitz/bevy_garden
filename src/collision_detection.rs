@@ -4,17 +4,17 @@ use crate::bvh::BVHNode;
 
 pub struct CollisionDetectionPlugin;
 impl Plugin for CollisionDetectionPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         // I keep the collision data in a spatial hash 
         // to reduce the number of comparisons
         app.init_resource::<SpatialHash>()
-            .add_startup_system(test_spawn_colliding_bodies.system())
+            .add_startup_system(test_spawn_colliding_bodies)
             // * Copy collidable data into the spatial hash
-            .add_system(rebuild_spatial_hash.system())
+            .add_system(rebuild_spatial_hash)
             // * Do the comparisons for each cell 
             // * write back to the ECS
-            .add_system(collision_detection.system())
-            .add_system(test_color_according_to_collision.system());
+            .add_system(collision_detection)
+            .add_system(test_color_according_to_collision);
     }
 }
 
@@ -270,7 +270,7 @@ fn test_color_according_to_collision(
 }
 
 fn test_spawn_colliding_bodies(
-    commands: &mut Commands,
+    mut commands:  Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -286,13 +286,14 @@ fn test_spawn_colliding_bodies(
     
     for t in transforms.iter() {
         commands
-        .spawn(PbrBundle {
+        .spawn()
+        .insert_bundle(PbrBundle {
             mesh: mesh.clone(),
             material: green_material.clone(),
             transform: t.clone(),
             ..Default::default()
         })
-        .with(Collidable::new(
+        .insert(Collidable::new(
             BoundingBox::default()
         ));
     }

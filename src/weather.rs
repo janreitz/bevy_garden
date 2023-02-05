@@ -6,9 +6,9 @@ use crate::collision_detection::{Collidable, BoundingBox};
    
 pub struct WeatherPlugin;
 impl Plugin for WeatherPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.init_resource::<Weather>()
-            .add_system(snow_simulation.system());
+            .add_system(snow_simulation);
     }
 }
 
@@ -34,7 +34,7 @@ fn snow_simulation(
     mut enough_snowflakes_spawned: Local<bool>,
     weather: Res<Weather>,
     time: Res<Time>,
-    commands: &mut Commands,
+    mut commands:  Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query: Query<&mut Transform, With<SnowFlake>>
@@ -79,7 +79,7 @@ fn snow_simulation(
 }
 
 fn spawn_snowflake(
-    commands: &mut Commands,
+    mut commands:  Commands,
     mesh: Handle<Mesh>,
     material: Handle<StandardMaterial>,
     position: Vec3,

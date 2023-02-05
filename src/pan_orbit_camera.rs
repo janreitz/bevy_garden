@@ -3,16 +3,16 @@ use bevy::input::mouse::{MouseMotion, MouseWheel};
 
 pub struct PanOrbitCameraPlugin;
 impl Plugin for PanOrbitCameraPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         // Resources need to be initialized before use
         app.init_resource::<InputState>()
-            .add_system(pan_orbit_camera.system())
-            .add_startup_system(setup.system());
+            .add_system(pan_orbit_camera)
+            .add_startup_system(setup);
     }
 }
 
 fn setup(
-    commands: &mut Commands,
+    mut commands:  Commands,
 ) {
     commands
     // Camera
@@ -25,6 +25,7 @@ fn setup(
 }
 
 /// Tags an entity as capable of panning and orbiting.
+#[derive(Component)]
 struct PanOrbitCamera {
     /// The "focus point" to orbit around. It is automatically updated when panning the camera
     pub focus: Vec3,
@@ -39,20 +40,18 @@ impl Default for PanOrbitCamera {
 }
 
 /// Hold readers for events
-#[derive(Default)]
-struct InputState {
-    pub reader_motion: EventReader<MouseMotion>,
-    pub reader_scroll: EventReader<MouseWheel>,
+#[derive(Resource)]
+struct InputState<'a> {
+    pub reader_motion:  EventReader<'a, 'a, MouseMotion>,
+    pub reader_scroll: EventReader<'a, 'a, MouseWheel>,
 }
 
 /// Pan the camera with LHold or scrollwheel, orbit with rclick.
-fn pan_orbit_camera(
+fn  pan_orbit_camera<'a>(
     time: Res<Time>,
     windows: Res<Windows>,
-    mut state: ResMut<InputState>,
-    ev_motion: Res<Events<MouseMotion>>,
+    mut state: ResMut<'a, InputState>,
     mousebtn: Res<Input<MouseButton>>,
-    ev_scroll: Res<Events<MouseWheel>>,
     mut query: Query<(&mut PanOrbitCamera, &mut Transform)>,
 ) {
     let mut translation_mouse_delta = Vec2::zero();
@@ -61,17 +60,17 @@ fn pan_orbit_camera(
     let dt = time.delta_seconds();
 
     if mousebtn.pressed(MouseButton::Right) {
-        for ev in state.reader_motion.iter(&ev_motion) {
+        for ev in state.reader_motion.iter() {
             rotation_mouse_delta += ev.delta;
         }
     } else if mousebtn.pressed(MouseButton::Left) {
         // Pan only if we're not rotating at the moment
-        for ev in state.reader_motion.iter(&ev_motion) {
+        for ev in state.reader_motion.iter() {
             translation_mouse_delta += ev.delta;
         }
     }
 
-    for ev in state.reader_scroll.iter(&ev_scroll) {
+    for ev in state.reader_scroll.iter() {
         scroll += ev.y;
     }
 

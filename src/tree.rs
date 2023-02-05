@@ -3,14 +3,14 @@ use bevy::prelude::*;
 
 pub struct TreePlugin;
 impl Plugin for TreePlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(create_trees.system())
-        .add_system(tree_growth.system());
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(create_trees)
+        .add_system(tree_growth);
     }
 }
 
 fn create_trees(
-    commands: &mut Commands,
+    mut commands:  Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -19,7 +19,7 @@ fn create_trees(
 }
 
 fn spawn_tree_segment(
-    commands: &mut Commands,
+    mut commands:  Commands,
     asset_server: &Res<AssetServer>,
     materials: &mut ResMut<Assets<StandardMaterial>>,
     position: Vec3,
@@ -43,7 +43,7 @@ fn spawn_tree_segment(
 }
 
 fn tree_growth(
-    commands: &mut Commands,
+    mut commands:  Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut query: Query<&mut TreeSegment, With<Root>>,
@@ -54,12 +54,14 @@ fn tree_growth(
     }
 }
 
+#[derive(Component)]
 struct Root;
 struct _Leaf;
 struct _Pose {
   //  
 }
 
+#[derive(Component)]
 struct TreeSegment {
     _thickness: f32,
     children: Vec<Entity>,
@@ -73,7 +75,7 @@ impl TreeSegment {
 
     fn grow(
         &mut self,
-        commands: &mut Commands,
+        mut commands:  Commands,
         asset_server: &Res<AssetServer>,
         materials: &mut ResMut<Assets<StandardMaterial>>,
     ) {

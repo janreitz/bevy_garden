@@ -10,13 +10,14 @@ use std::f32::consts::PI;
 
 pub struct ThrusterPlugin;
 impl Plugin for ThrusterPlugin {
-    fn build(&self, app: &mut AppBuilder) {
-        app.add_startup_system(spawn_test_thruster_3d.system())
-            .add_system(thruster_control.system())
-            .add_system(thruster_3d_control.system());
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(spawn_test_thruster_3d)
+            .add_system(thruster_control)
+            .add_system(thruster_3d_control);
     }
 }
 
+#[derive(Component)]
 struct Thruster {
     // Direction is interpreted relative to Transform Component
     force: Vec3,
@@ -36,7 +37,7 @@ fn thruster_control(
 }
 
 fn _spawn_test_thruster(
-    commands: &mut Commands,
+    mut commands:  Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -58,6 +59,7 @@ fn _spawn_test_thruster(
     ;
 }
 
+#[derive(Component)]
 struct Thruster3d{
     force_up: Vec3,
     force_left: Vec3,
@@ -109,7 +111,7 @@ fn thruster_3d_control(
 }
 
 fn spawn_test_thruster_3d(
-    commands: &mut Commands,
+    mut commands:  Commands,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {

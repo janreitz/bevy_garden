@@ -19,7 +19,7 @@ use random_moving_balls::*;
 mod bvh;
 
 fn setup(
-    commands: &mut Commands,
+    mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -32,7 +32,7 @@ fn setup(
         //     ..Default::default()
         // })
         // Light
-        .spawn(LightBundle {
+        .spawn(PointLightBundle {
             transform: Transform::from_translation(Vec3::new(4.0, 8.0,4.0)),
             ..Default::default()
         });
@@ -61,8 +61,8 @@ fn main() {
             style: Style {
                 position_type: PositionType::Absolute,
                 position: Rect {
-                    top: Val::Px(1.0),
-                    left: Val::Px(1.0),
+                    min: Val::Px(1.0),
+                    max: Val::Px(1.0),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -73,11 +73,11 @@ fn main() {
             },
             ..Default::default()
         }))
-        .add_system(bevy::input::system::exit_on_esc_system.system())
+        .add_system(bevy::window::close_on_esc)
         // Startup systems are called only one, at startup
         .add_startup_system(
             // calling `system()` on a function turns it into a system
-            setup.system()
+            setup
         )
         .run();
 }

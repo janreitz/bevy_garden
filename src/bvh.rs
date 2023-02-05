@@ -134,14 +134,14 @@ where T: Clone {
             return Some((self.data.as_ref().unwrap().clone(), self.bbox.clone()));
         }
 
-        let mut left_contains = false;
+        let left_contains;
         if let Some(left) = &self.left {
             left_contains = left.bbox.contains(&position);
         } else {
             // Only right is some
             return self.right.as_ref().unwrap().get_closest(position);
         }
-        let mut right_contains = false;
+        let right_contains;
         if let Some(right) = &self.right {
             right_contains = right.bbox.contains(&position);
         } else {
